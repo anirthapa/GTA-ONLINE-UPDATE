@@ -38,7 +38,7 @@ CI runs lint, typecheck, tests, and build with empty service credentials. It doe
 
 ## Deploy and operate
 
-Deploy to Vercel or a compatible Node.js host with Supabase. Both scheduler options are disabled by default. Select exactly one: a paid Vercel plan with a 30-minute cron, or the explicitly gated GitHub HTTP workflow. Both call `GET /api/cron/news-sync` with `Authorization: Bearer <CRON_SECRET>`. Setup and switching instructions are in [deployment](docs/deployment.md).
+Deploy to Vercel or a compatible Node.js host with Supabase. The recommended free scheduler is the explicitly gated GitHub Actions HTTP workflow; Vercel Cron remains disabled. It runs every 30 minutes and calls `GET /api/cron/news-sync` with `Authorization: Bearer <CRON_SECRET>`. Setup and switching instructions are in [deployment](docs/deployment.md). A paid Vercel plan is only needed if you prefer Vercel Cron instead.
 
 Transient-data cleanup runs when an automation run is inserted, so retention depends on functioning scheduled runs. It removes rate-limit records expired for over one day, expired AI extraction cache entries, and daily view aggregates older than 90 UTC days. See [operations](docs/operations.md) for the retention limits and monitoring requirements.
 

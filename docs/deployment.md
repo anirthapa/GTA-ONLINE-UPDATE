@@ -77,9 +77,9 @@ Import the repository as a Next.js project, select Node.js 22, and use `npm ci` 
 
 ## Choose exactly one scheduler
 
-The committed configuration schedules no HTTP calls by default: Vercel has no cron entries and GitHub's job requires two explicit repository variables. Do not enable both providers. The desired interval is 30 minutes; per-source `fetch_frequency` can cause a source to be skipped until it is due.
+The recommended free option is GitHub Actions. The committed configuration schedules no Vercel HTTP calls: Vercel has no cron entries and GitHub's job requires explicit repository variables. Do not enable both providers. The desired interval is 30 minutes; per-source `fetch_frequency` can cause a source to be skipped until it is due.
 
-### Option A: GitHub scheduled HTTP
+### Option A: GitHub scheduled HTTP — recommended free option
 
 Leave `vercel.json` with `"crons": []` and deploy that configuration. Under repository Settings → Secrets and variables → Actions, configure:
 
@@ -91,6 +91,8 @@ Leave `vercel.json` with `"crons": []` and deploy that configuration. Under repo
 | Repository secret | `CRON_SECRET` | Exact value of the app's production `CRON_SECRET` |
 
 `.github/workflows/news-sync.yml` runs at minutes 17 and 47 UTC, and offers a manually dispatched run behind the same gates. It calls `GET /api/cron/news-sync` with a bearer token, rejects redirects, and prevents concurrent GitHub jobs. It checks the checked-out Vercel configuration for a duplicate sync cron. It cannot inspect an old deployed Vercel schedule: remove that schedule and redeploy before enabling GitHub.
+
+GitHub Actions is the scheduler; the application can still be hosted on Vercel Hobby or another free/low-cost HTTPS host. The workflow does not need a paid Vercel plan because it makes a normal authenticated HTTPS request from GitHub's runner.
 
 The endpoint must be reachable from GitHub's runners and return its JSON response directly; an access-protection login page or domain redirect will fail the run. Use the final canonical hostname. GitHub schedules run from the default branch, may be delayed or dropped under load, and can be disabled after inactivity in public repositories. This is a requested interval, not a timing SLA. See [GitHub scheduling behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
 
