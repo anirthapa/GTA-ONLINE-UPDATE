@@ -15,7 +15,7 @@ Use Node.js 22 (at least 22.12), npm, a Supabase project, and a Vercel project o
 | `ADMIN_EMAIL` | Administrator access | Comma-separated allowlist of confirmed Auth account emails |
 | `AI_PROVIDER` | Real ingestion extraction | `groq` uses the free Groq plan; `openai` selects the paid OpenAI fallback |
 | `GROQ_API_KEY` | Real ingestion extraction | Server-only Groq key; required when `AI_PROVIDER=groq` |
-| `AI_MODEL` | Optional extraction override | Groq default: `openai/gpt-oss-20b`; verify current free-plan limits |
+| `AI_MODEL` | Optional extraction override | Groq default: `openai/gpt-oss-120b`; verify current free-plan limits |
 | `OPENAI_API_KEY` | Optional paid extraction fallback | Server-only; used when `AI_PROVIDER=openai` or no provider is selected |
 | `OPENAI_MODEL` | Optional OpenAI model override | Used by the OpenAI fallback; operator must verify account/model access |
 | `CRON_SECRET` | Cron endpoint and database-backed abuse prevention/views | Random secret of at least 32 characters, as required by the routes; same value on the selected scheduler |

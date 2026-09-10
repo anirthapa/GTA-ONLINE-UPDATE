@@ -8,6 +8,8 @@ import { canonicalizeUrl, hashText, normalizeTitle } from '../identity';
 import { OFFICIAL_HOSTS, verifiedSourceTrust } from '../trust';
 import { safeFetch, validateDestination, validateHttpsUrl, type FetchPolicy, type FetchResult } from './safe-fetch';
 
+const MAX_ITEMS_PER_SOURCE_FETCH = 5;
+
 const SOURCE_CONFIG = z.object({
   name: z.string().trim().min(1).max(160), url: z.string().url().max(2048),
   source_type: z.enum(['RSS', 'HTML', 'JSON', 'YOUTUBE', 'COMMUNITY']),
@@ -58,7 +60,7 @@ function normalize(source: Source, raw: { id?: unknown; url?: unknown; title?: u
   if (typeof raw.url !== 'string' || typeof raw.title !== 'string' || !raw.title.trim()) throw new Error('Source item lacks title or URL.');
   const url = canonicalizeUrl(new URL(raw.url, source.url).toString());
   verifiedSourceTrust(source, url);
-  const title = plainText(raw.title).slice(0, 300), content = plainText(typeof raw.content === 'string' ? raw.content : '');
+  const title = plainText(raw.title).slice(0, 300), content = plainText(typeof raw.content === 'string' ? raw.content : '').slice(0, 12_000);
   if (!title || content.length < 30) throw new Error('Source item has insufficient attributable text.');
   return { external_id: String(raw.id || url).slice(0, 2048), url, title, content,
     published_at: dateOrNull(raw.publishedAt), modified_at: dateOrNull(raw.modifiedAt),
@@ -80,12 +82,12 @@ export async function fetchSource(source: Source, fetcher: SourceFetcher = safeF
   if (source.source_type === 'JSON') {
     const payload: unknown = JSON.parse(response.body);
     rawItems = z.union([z.array(z.record(z.string(), z.unknown())), z.object({ items: z.array(z.record(z.string(), z.unknown())) })])
-      .transform(value => Array.isArray(value) ? value : value.items).parse(payload).slice(0, 50);
+      .transform(value => Array.isArray(value) ? value : value.items).parse(payload).slice(0, MAX_ITEMS_PER_SOURCE_FETCH);
   } else if (source.source_type === 'HTML') {
     const $ = load(response.body);
     // Opt-in HTML is conservative: only explicit article elements with a headline
     // and source-owned URL. It never recursively crawls links.
-    rawItems = $('article').slice(0, 50).toArray().map(element => {
+    rawItems = $('article').slice(0, MAX_ITEMS_PER_SOURCE_FETCH).toArray().map(element => {
       const article = $(element), link = article.find('h1 a,h2 a,h3 a').first();
       return { url: link.attr('href') || response.url, title: article.find('h1,h2,h3').first().text(),
         content: article.html(), publishedAt: article.find('time[datetime]').first().attr('datetime') };
@@ -95,7 +97,7 @@ export async function fetchSource(source: Source, fetcher: SourceFetcher = safeF
     const parser = new Parser({ customFields: { feed: ['yt:channelId'], item: ['yt:channelId', 'yt:videoId', ['media:group', 'mediaGroup']] } });
     const feed = await parser.parseString(response.body);
     if (channel && (feed as unknown as Record<string, unknown>)['yt:channelId'] !== channel) throw new Error('YouTube feed channel ownership mismatch.');
-    rawItems = feed.items.slice(0, 50).map(item => {
+    rawItems = feed.items.slice(0, MAX_ITEMS_PER_SOURCE_FETCH).map(item => {
       const extra = item as unknown as Record<string, unknown>;
       if (channel && extra['yt:channelId'] !== channel) throw new Error('YouTube item channel ownership mismatch.');
       const media = extra.mediaGroup as { 'media:description'?: string[] } | undefined;
