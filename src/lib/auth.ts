@@ -2,9 +2,15 @@ import 'server-only';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getSupabasePublicKey } from '@/lib/supabase-env';
 
 export function authSetupMissing(): string[] {
-  return ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'ADMIN_EMAIL'].filter(key => !process.env[key]?.trim());
+  return [
+    !process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ? 'NEXT_PUBLIC_SUPABASE_URL' : '',
+    !getSupabasePublicKey() ? 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY' : '',
+    !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ? 'SUPABASE_SERVICE_ROLE_KEY' : '',
+    !process.env.ADMIN_EMAIL?.trim() ? 'ADMIN_EMAIL' : '',
+  ].filter(Boolean);
 }
 
 export function isAdminEmail(email?: string | null) {
@@ -15,7 +21,7 @@ export function isAdminEmail(email?: string | null) {
 export async function createAuthClient() {
   if (authSetupMissing().length) throw new Error('Admin authentication is not configured. Visit /admin/login for setup instructions.');
   const cookieStore = await cookies();
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, getSupabasePublicKey()!, {
     cookieOptions: { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' },
     cookies: {
       getAll: () => cookieStore.getAll(),

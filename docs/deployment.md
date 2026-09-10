@@ -10,7 +10,7 @@ Use Node.js 22 (at least 22.12), npm, a Supabase project, and a Vercel project o
 | --- | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | Canonicals and production indexing | Final HTTPS origin, no path/query/fragment; localhost for local development |
 | `NEXT_PUBLIC_SUPABASE_URL` | Database and Auth | Project API URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Administrator Auth | Supabase anon key; browser-safe, but not a service-role substitute |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Administrator Auth | Preferred modern Supabase browser-safe key; legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY` is also accepted |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server reads/writes and sync | Server-only service-role key; never prefix with `NEXT_PUBLIC_` |
 | `ADMIN_EMAIL` | Administrator access | Comma-separated allowlist of confirmed Auth account emails |
 | `OPENAI_API_KEY` | Real ingestion extraction | Server-only; existing published pages can render without it |
