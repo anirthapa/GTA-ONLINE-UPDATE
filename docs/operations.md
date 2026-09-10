@@ -45,7 +45,7 @@ Retention relies on functioning scheduled runs reaching that insertion; there is
 | Source 403/challenge/permission refusal | Disable the source pending legitimate access; do not bypass restrictions or turn on HTML fallback automatically. |
 | DNS/host/content-type rejection | Check explicit permitted hosts and actual feed format. Do not weaken private-address or redirect checks to make a source pass. |
 | Source timeout, 429, or 5xx | Inspect source logs and fetch frequency; allow bounded retries/backoff and reduce load. Do not repeatedly dispatch full runs. |
-| OpenAI key/model/quota/output error | Check credentials, permitted model, quota and schema/evidence rejection. Keep the item unpublished and retry only after fixing the cause. |
+| AI provider key/model/quota/output error | Check `AI_PROVIDER`, the provider key, permitted model, free-plan quota and schema/evidence rejection. Keep the item unpublished and retry only after fixing the cause. |
 | Duplicate/locked sync | Inspect the active run/lease and scheduler selection. Do not clear a live lease or enable a second provider. |
 | Runtime timeout / unfinished run | Inspect run status, lease expiry and processed items before retrying. Reduce enabled source workload or plan a larger execution environment; a 300-second setting is not a queue. |
 | Admin save conflict | Reload and compare the current revision before applying the edit again. Do not overwrite another editor's change blindly. |

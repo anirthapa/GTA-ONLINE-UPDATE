@@ -1,6 +1,6 @@
 # Implementation contract
 
-Next.js App Router, TypeScript, Tailwind v4, Supabase JS + SSR, Zod v4, OpenAI Responses API. Main owns package/config, lib/db.ts, all public UI and routes. Backend agent owns services/**, supabase/**, scripts/seed.ts, backend tests. Admin agent owns app/admin/**, app/auth/**, lib/auth.ts, proxy.ts. Do not edit others' files.
+Next.js App Router, TypeScript, Tailwind v4, Supabase JS + SSR, Zod v4, and an OpenAI-compatible structured-output AI provider. Main owns package/config, lib/db.ts, all public UI and routes. Backend agent owns services/**, supabase/**, scripts/seed.ts, backend tests. Admin agent owns app/admin/**, app/auth/**, lib/auth.ts, proxy.ts. Do not edit others' files.
 
 DB helper main provides `import { getDb, isDatabaseConfigured } from '@/lib/db'`: getDb() synchronous service-role SupabaseClient, throws if missing; isDatabaseConfigured() boolean. NEXT_PUBLIC_SUPABASE_URL, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`), SUPABASE_SERVICE_ROLE_KEY. Public reads server-side only. Auth SSR uses the browser-safe public key, getUser() plus ADMIN_EMAIL allowlist; every action must requireAdmin(). No demo admin mutation bypass.
 

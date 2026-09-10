@@ -13,8 +13,11 @@ Use Node.js 22 (at least 22.12), npm, a Supabase project, and a Vercel project o
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Administrator Auth | Preferred modern Supabase browser-safe key; legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY` is also accepted |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server reads/writes and sync | Server-only service-role key; never prefix with `NEXT_PUBLIC_` |
 | `ADMIN_EMAIL` | Administrator access | Comma-separated allowlist of confirmed Auth account emails |
-| `OPENAI_API_KEY` | Real ingestion extraction | Server-only; existing published pages can render without it |
-| `OPENAI_MODEL` | Optional extraction override | Current code default: `gpt-4.1-mini`; operator must verify account/model access |
+| `AI_PROVIDER` | Real ingestion extraction | `groq` uses the free Groq plan; `openai` selects the paid OpenAI fallback |
+| `GROQ_API_KEY` | Real ingestion extraction | Server-only Groq key; required when `AI_PROVIDER=groq` |
+| `AI_MODEL` | Optional extraction override | Groq default: `openai/gpt-oss-20b`; verify current free-plan limits |
+| `OPENAI_API_KEY` | Optional paid extraction fallback | Server-only; used when `AI_PROVIDER=openai` or no provider is selected |
+| `OPENAI_MODEL` | Optional OpenAI model override | Used by the OpenAI fallback; operator must verify account/model access |
 | `CRON_SECRET` | Cron endpoint and database-backed abuse prevention/views | Random secret of at least 32 characters, as required by the routes; same value on the selected scheduler |
 | `INGESTION_BUDGET_MS` | Optional sync work budget | Default 240000; numeric milliseconds clamped to 5000–240000; leave time for in-flight requests and finalization |
 | `DEMO_MODE` | Local fixture development | `false` on production and previews; never seed production |

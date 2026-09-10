@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { getDb } from '@/lib/db';
-import { extractStory, validateExtraction, validateWeekly, EXTRACTION_VERSION, type Extraction, type ExtractionUsage } from '../ai/extract';
+import { extractStory, getAiConfig, getAiModel, validateExtraction, validateWeekly, EXTRACTION_VERSION, type Extraction, type ExtractionUsage } from '../ai/extract';
 import { fetchSource, type AdapterResult } from '../sources';
 import { DEFAULT_SETTINGS } from '../defaults';
 import { slugify } from '../identity';
@@ -21,7 +21,7 @@ export interface PipelineDependencies {
 function assertResult(error: { message: string } | null) { if (error) throw new Error(error.message); }
 export function safeError(error: unknown): string {
   const message = error instanceof Error ? error.message : 'Unknown ingestion failure';
-  return message.replace(/sk-[\w-]+/g, '[redacted]').replace(/(Bearer\s+)[^\s]+/gi, '$1[redacted]')
+  return message.replace(/(?:sk|gsk|sk-or-v1)-[\w-]+/g, '[redacted]').replace(/(Bearer\s+)[^\s]+/gi, '$1[redacted]')
     .replace(/([?&](?:key|token|api_key|secret)=)[^&\s]+/gi, '$1[redacted]').slice(0, 600);
 }
 export function isGtaRelevant(item: Pick<SourceItem, 'title' | 'content'>): boolean {
@@ -34,7 +34,7 @@ export function ingestionBudget(value: unknown): number {
 export async function runNewsSync({ sourceId }: { sourceId?: string } = {}, deps: PipelineDependencies = {}): Promise<SyncResult> {
   if (sourceId) z.uuid().parse(sourceId);
   const db = deps.db || getDb();
-  if (!deps.extract && !process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is required for real news ingestion.');
+  if (!deps.extract && !getAiConfig()) throw new Error('No AI provider is configured. Set GROQ_API_KEY for the free Groq plan or OPENAI_API_KEY.');
   const owner = randomUUID();
   const result: SyncResult = { status: 'SKIPPED', runId: null, processed: 0, skipped: 0, failed: 0, sources: 0 };
   const rpc = async (name: string, args: Record<string, unknown> = {}) => {
@@ -91,7 +91,7 @@ export async function runNewsSync({ sourceId }: { sourceId?: string } = {}, deps
               await log('INFO', 'duplicate_before_ai', 'Duplicate source attached without an AI call.', source.id, { article_id: duplicate.article_id, match: duplicate.match });
               continue;
             }
-            const model = process.env.OPENAI_MODEL || 'gpt-4.1-mini';
+            const model = getAiModel();
             const cacheKey = `${EXTRACTION_VERSION}:${model}:${item.content_hash}`;
             const cache = await db.from('ai_extractions').select('result').eq('cache_key', cacheKey).gt('expires_at', new Date().toISOString()).maybeSingle();
             assertResult(cache.error);
