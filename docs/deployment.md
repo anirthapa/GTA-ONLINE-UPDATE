@@ -33,6 +33,7 @@ Run from the repository root. Install/use the Supabase CLI according to the [Sup
 - `202609100003_cost_controls.sql`: extraction cache and early duplicate attachment.
 - `202609100010_analytics.sql`: database rate limits, per-day article views, trending RPC, and transient-data cleanup triggered by automation-run insertion.
 - `202609100011_catalog_search.sql`: generated guide `search_document` combining title and description with the PostgreSQL `simple` text-search configuration, plus its GIN index for catalog search.
+- `202609100012_explicit_deny_policies.sql`: explicit deny policies for anonymous/authenticated clients; server-side `service_role` access remains the only application data path.
 
 If this checkout has no `supabase/config.toml`, initialize the CLI configuration once. `init` is a setup action; it is not a migration or seed.
 
