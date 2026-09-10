@@ -8,7 +8,9 @@ import { canonicalizeUrl, hashText, normalizeTitle } from '../identity';
 import { OFFICIAL_HOSTS, verifiedSourceTrust } from '../trust';
 import { safeFetch, validateDestination, validateHttpsUrl, type FetchPolicy, type FetchResult } from './safe-fetch';
 
-const MAX_ITEMS_PER_SOURCE_FETCH = 5;
+// Keep each scheduled batch small enough for free-tier model quotas. Failed
+// items remain in source_items and are retried on later scheduler runs.
+const MAX_ITEMS_PER_SOURCE_FETCH = 2;
 
 const SOURCE_CONFIG = z.object({
   name: z.string().trim().min(1).max(160), url: z.string().url().max(2048),

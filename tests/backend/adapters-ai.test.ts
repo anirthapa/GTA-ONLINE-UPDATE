@@ -21,7 +21,7 @@ describe('source adapters', () => {
   it('parses normalized JSON and caps item count', async () => {
     const parsed = await fetchSource({ ...source, source_type: 'JSON' }, async () => ({ url: source.url, status: 200, headers: {},
       body: JSON.stringify({ items: Array.from({ length: 100 }, (_, index) => ({ id: index, url: `/story-${index}`, title: 'Fictional test JSON item', content: item.content })) }) }));
-    expect(parsed.items).toHaveLength(5);
+    expect(parsed.items).toHaveLength(2);
   });
   it('requires explicit HTML opt-in and only reads article elements', async () => {
     const html = { ...source, source_type: 'HTML' as const };

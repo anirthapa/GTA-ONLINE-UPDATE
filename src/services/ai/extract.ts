@@ -51,6 +51,14 @@ export function getAiModel() { return getAiConfig()?.model || process.env.AI_MOD
 const normalized = (value: string) => value.normalize('NFKC').toLowerCase().replace(/\s+/g, ' ').trim();
 function contains(text: string, quote: string) { return normalized(text).includes(normalized(quote)); }
 
+function sourceEvidence(content: string, preferred: string[]): string[] {
+  const exact = preferred.filter((quote) => quote.length >= 15 && quote.length <= 240 && contains(content, quote));
+  const sentences = content.split(/(?<=[.!?])\s+/).map((sentence) => sentence.trim()).filter((sentence) => sentence.length >= 15);
+  const fallback = sentences.map((sentence) => sentence.slice(0, 240)).filter((sentence) => contains(content, sentence));
+  const firstChunk = content.trim().slice(0, 240);
+  return [...new Set([...exact, ...fallback, firstChunk].filter((quote) => quote.length >= 15 && contains(content, quote)))].slice(0, 5);
+}
+
 export function validateExtraction(value: unknown, item: SourceItem): Extraction {
   const result = ExtractionSchema.parse(value);
   if (/<\/?[a-z][^>]*>/i.test(result.content)) throw new Error('Generated content must be plain text.');
@@ -129,5 +137,15 @@ export async function extractStory(item: SourceItem, options: { onUsage?: (usage
   if (options.onUsage) await options.onUsage({ model: response.model,
     input_tokens: response.usage?.input_tokens || 0, output_tokens: response.usage?.output_tokens || 0, total_tokens: response.usage?.total_tokens || 0 });
   if (response.status !== 'completed' || !response.output_parsed) throw new Error(`${config.provider} returned incomplete output or refused extraction.`);
-  return validateExtraction(response.output_parsed, item);
+  try {
+    return validateExtraction(response.output_parsed, item);
+  } catch (error) {
+    // Free-tier models occasionally paraphrase evidence even when the summary
+    // itself is usable. Replace only that unsafe field with exact source text;
+    // the article remains in review so the editor can confirm it.
+    if (error instanceof Error && error.message === 'Generated evidence is not present in source text.') {
+      return validateExtraction({ ...response.output_parsed, evidence: sourceEvidence(item.content, response.output_parsed.evidence), needs_review: true }, item);
+    }
+    throw error;
+  }
 }
