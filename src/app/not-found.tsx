@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export default function NotFound(){return <div className="container page-content"><div className="empty-state"><p className="eyebrow" style={{justifyContent:'center'}}>404 / OFF THE MAP</p><h1 style={{margin:'20px 0'}}>This lead went cold.</h1><p>The page may have moved or hasn’t been published yet.</p><Link className="button" style={{marginTop:25}} href="/">Back to the wire</Link></div></div>;}

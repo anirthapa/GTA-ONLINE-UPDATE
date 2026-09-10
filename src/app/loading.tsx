@@ -1,0 +1,1 @@
+export default function Loading(){return <div className="container page-content" aria-busy="true" aria-label="Loading publication"><div className="skeleton" style={{height:90,marginBottom:24}}/><div className="article-grid">{[1,2,3].map(n=><div className="skeleton" key={n}/>)}</div></div>;}

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "node -e \"if (process.env.DEMO_MODE === 'true') throw new Error('DEMO_MODE is development-only; disable it before deployment.')\" && npm run build",
+  "functions": {
+    "src/app/api/cron/news-sync/route.ts": { "maxDuration": 300 }
+  },
+  "crons": []
+}

@@ -1,0 +1,54 @@
+name: Scheduled news sync (opt-in)
+
+on:
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-news-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: vars.NEWS_SYNC_ENABLED == 'true' && vars.NEWS_SYNC_SCHEDULER == 'github'
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify scheduler selection and call production endpoint
+        env:
+          NEWS_SYNC_SITE_URL: ${{ vars.NEWS_SYNC_SITE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const config = JSON.parse(readFileSync('vercel.json', 'utf8'));
+          if ((config.crons ?? []).some(cron => cron.path === '/api/cron/news-sync')) {
+            throw new Error('Vercel cron is configured. Remove it and redeploy before selecting GitHub scheduling.');
+          }
+          const secret = process.env.CRON_SECRET;
+          if (!secret || secret.length < 32 || /\s/.test(secret)) throw new Error('Set a repository CRON_SECRET of at least 32 characters matching production.');
+          const origin = new URL(process.env.NEWS_SYNC_SITE_URL);
+          if (origin.protocol !== 'https:' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash) {
+            throw new Error('NEWS_SYNC_SITE_URL must be the HTTPS production origin, with no credentials, path, query or fragment.');
+          }
+          const response = await fetch(new URL('/api/cron/news-sync', origin), {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${secret}`, Accept: 'application/json' },
+            redirect: 'error',
+            signal: AbortSignal.timeout(310_000),
+          });
+          if (!response.ok) throw new Error(`News sync returned HTTP ${response.status}. Inspect server logs.`);
+          const result = await response.json();
+          if (!result || !['SUCCESS', 'SKIPPED'].includes(result.status)) {
+            throw new Error('News sync reported an incomplete run. Inspect automation runs and source logs.');
+          }
+          console.log('News sync request completed. Check automation runs for processed items and publication status.');
+          NODE
