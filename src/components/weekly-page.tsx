@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  ArrowRight,
   ArrowUpRight,
   BadgePercent,
   CalendarDays,
@@ -54,6 +55,16 @@ export async function WeeklyPage({
   const featuredVehicles = discountedVehicles.length
     ? discountedVehicles
     : vehicles.slice(0, 6);
+  const vehicleForDiscount = (discountName: string) =>
+    vehicles.find((vehicle) => {
+      const vehicleName = vehicle.name.toLowerCase();
+      const name = discountName.toLowerCase();
+      return (
+        vehicleName === name ||
+        vehicleName.endsWith(` ${name}`) ||
+        vehicleName.includes(` ${name}`)
+      );
+    });
   const sections = week
     ? ([
         [
@@ -63,10 +74,6 @@ export async function WeeklyPage({
         ["Free rewards", week.data.freeItems],
         ["Login rewards", week.data.loginRewards],
         ["New vehicles", week.data.newVehicles],
-        [
-          "Vehicle discounts",
-          week.data.vehicleDiscounts.map((v) => `${v.name}: ${v.discount}`),
-        ],
         [
           "Property discounts",
           week.data.propertyDiscounts.map((v) => `${v.name}: ${v.discount}`),
@@ -147,48 +154,78 @@ export async function WeeklyPage({
       <WeeklyPanel week={week} full />
       {week ? (
         <>
-          {featuredVehicles.length > 0 && (
-            <section className="weekly-garage">
-              <SectionHeading
-                kicker="THE WEEK’S GARAGE"
-                title="The garage, in pictures."
-                href="/gta-online/vehicles"
-                action="Browse the full garage"
-              />
-              <div className="weekly-vehicle-grid">
-                {featuredVehicles.map((vehicle) => (
-                  <Link
-                    className="weekly-vehicle-card"
-                    href={`/gta-online/vehicles/${vehicle.slug}`}
-                    key={vehicle.id}
-                  >
-                    <div className="weekly-vehicle-image">
-                      {vehicle.image ? (
-                        <MediaImage
-                          src={vehicle.image}
-                          alt={`${vehicle.name} GTA Online vehicle`}
-                          sizes="(max-width: 760px) 100vw, (max-width: 1100px) 50vw, 33vw"
-                        />
-                      ) : (
-                        <CarFront size={42} aria-hidden="true" />
-                      )}
-                      <span className="discount-badge">
-                        {discountFor(vehicle.name, discountMap) ?? "CATALOG"}
-                      </span>
-                    </div>
-                    <div className="weekly-vehicle-copy">
-                      <p className="eyebrow">{vehicle.vehicle_class}</p>
-                      <h3>{vehicle.name}</h3>
-                      <div className="weekly-vehicle-meta">
-                        <span>{money(vehicle.price)}</span>
-                        <ArrowUpRight size={16} aria-hidden="true" />
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+          <section className="weekly-deals-board">
+            <div className="weekly-deals-heading">
+              <div>
+                <p className="eyebrow"><BadgePercent size={15} /> THIS WEEK’S DEALS</p>
+                <h2>Upgrade your garage for less.</h2>
+                <p>Every vehicle offer in one quick scan, with catalog images where specifications are verified.</p>
               </div>
-            </section>
-          )}
+              <div className="weekly-deals-total">
+                <strong>{week.data.vehicleDiscounts.length}</strong>
+                <span>vehicle offers</span>
+              </div>
+            </div>
+            {featuredVehicles.filter((vehicle) => discountFor(vehicle.name, discountMap)).length > 0 && (
+              <div className="weekly-deal-featured">
+                {featuredVehicles
+                  .filter((vehicle) => discountFor(vehicle.name, discountMap))
+                  .map((vehicle) => (
+                    <Link
+                      className="weekly-deal-feature-card"
+                      href={`/gta-online/vehicles/${vehicle.slug}`}
+                      key={vehicle.id}
+                    >
+                      <div className="weekly-deal-feature-image">
+                        {vehicle.image ? (
+                          <MediaImage
+                            src={vehicle.image}
+                            alt={`${vehicle.name} GTA Online vehicle`}
+                            sizes="(max-width: 760px) 100vw, 50vw"
+                          />
+                        ) : (
+                          <CarFront size={42} aria-hidden="true" />
+                        )}
+                        <span className="discount-badge">{discountFor(vehicle.name, discountMap)}</span>
+                      </div>
+                      <div className="weekly-deal-feature-copy">
+                        <p className="eyebrow">{vehicle.vehicle_class}</p>
+                        <h3>{vehicle.name}</h3>
+                        <span>{money(vehicle.price)} <ArrowUpRight size={15} aria-hidden="true" /></span>
+                      </div>
+                    </Link>
+                  ))}
+              </div>
+            )}
+            <div className="weekly-deal-list" aria-label="Vehicle discounts">
+              {week.data.vehicleDiscounts.map((discount, index) => {
+                const vehicle = vehicleForDiscount(discount.name);
+                const dealContent = (
+                  <>
+                    <span className="deal-number">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="deal-name">
+                      <strong>{discount.name}</strong>
+                      <small>{vehicle?.vehicle_class ?? "Vehicle offer"}</small>
+                    </span>
+                    <span className="deal-value">{discount.discount}</span>
+                    <ArrowRight className="deal-arrow" size={18} aria-hidden="true" />
+                  </>
+                );
+                return vehicle ? (
+                  <Link className="weekly-deal-row" href={`/gta-online/vehicles/${vehicle.slug}`} key={`${discount.name}-${index}`}>
+                    {dealContent}
+                  </Link>
+                ) : (
+                  <div className="weekly-deal-row" key={`${discount.name}-${index}`}>
+                    {dealContent}
+                  </div>
+                );
+              })}
+            </div>
+            <Link className="weekly-deals-footer-link" href="/gta-online/vehicles">
+              Compare all verified vehicle specifications <ArrowUpRight size={16} />
+            </Link>
+          </section>
           <div className="weekly-section-heading">
             <div>
               <p className="eyebrow"><Sparkles size={15} /> FIELD NOTES</p>
