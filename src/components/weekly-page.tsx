@@ -19,6 +19,18 @@ import { date, money } from "@/lib/utils";
 function minutesSince(value: string) {
   return Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000)).toLocaleString();
 }
+function discountFor(
+  vehicleName: string,
+  discounts: Map<string, string>,
+): string | undefined {
+  const name = vehicleName.toLowerCase();
+  return [...discounts.entries()].find(
+    ([discountName]) =>
+      name === discountName ||
+      name.endsWith(` ${discountName}`) ||
+      name.includes(` ${discountName}`),
+  )?.[1];
+}
 export async function WeeklyPage({
   week,
   archive,
@@ -36,9 +48,12 @@ export async function WeeklyPage({
       discount.discount,
     ]) ?? [],
   );
-  const featuredVehicles = vehicles
-    .filter((vehicle) => discountMap.has(vehicle.name.toLowerCase()))
+  const discountedVehicles = vehicles
+    .filter((vehicle) => discountFor(vehicle.name, discountMap))
     .slice(0, 6);
+  const featuredVehicles = discountedVehicles.length
+    ? discountedVehicles
+    : vehicles.slice(0, 6);
   const sections = week
     ? ([
         [
@@ -136,7 +151,7 @@ export async function WeeklyPage({
             <section className="weekly-garage">
               <SectionHeading
                 kicker="THE WEEK’S GARAGE"
-                title="Rides worth pulling up for."
+                title="The garage, in pictures."
                 href="/gta-online/vehicles"
                 action="Browse the full garage"
               />
@@ -158,7 +173,7 @@ export async function WeeklyPage({
                         <CarFront size={42} aria-hidden="true" />
                       )}
                       <span className="discount-badge">
-                        {discountMap.get(vehicle.name.toLowerCase())}
+                        {discountFor(vehicle.name, discountMap) ?? "CATALOG"}
                       </span>
                     </div>
                     <div className="weekly-vehicle-copy">
