@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './revamp.css';
 import { Navigation } from '@/components/navigation';
 import { Footer } from '@/components/editorial';
 import { indexingAllowed } from '@/lib/seo';

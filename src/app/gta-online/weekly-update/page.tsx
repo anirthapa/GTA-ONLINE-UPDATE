@@ -1,4 +1,8 @@
-import { getVehicles, getWeeklyUpdate, getWeeklyArchive } from "@/services/public-data";
+import {
+  getWeeklyOffers,
+  getWeeklyUpdate,
+  getWeeklyArchive,
+} from "@/services/public-data";
 import { WeeklyPage } from "@/components/weekly-page";
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -8,10 +12,10 @@ export const metadata = {
   alternates: { canonical: "/gta-online/weekly-update" },
 };
 export default async function Page() {
-  const [week, archive, vehicles] = await Promise.all([
+  const [week, archive] = await Promise.all([
     getWeeklyUpdate(),
     getWeeklyArchive(),
-    getVehicles(),
   ]);
-  return <WeeklyPage week={week} archive={archive} vehicles={vehicles} />;
+  const offers = await getWeeklyOffers(week);
+  return <WeeklyPage week={week} archive={archive} offers={offers} />;
 }

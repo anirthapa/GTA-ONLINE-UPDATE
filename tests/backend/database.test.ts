@@ -42,6 +42,25 @@ beforeEach(async () => {
 afterEach(async () => { await db.exec('rollback'); });
 
 describe('real PostgreSQL migrations and transactional ingestion', () => {
+  it('links weekly discounts by exact aliases and retains the canonical vehicle on refresh', async () => {
+    const standard=await one("insert into public.vehicles(slug,name,vehicle_class) values('cheetah','Grotti Cheetah Classic','Sports Classics') returning id");
+    const special=await one("insert into public.vehicles(slug,name,vehicle_class) values('widebody','Grotti LSCM Cheetah Classic','Sports Classics') returning id");
+    await db.query("insert into public.vehicle_aliases(alias,vehicle_id,source_url) values('lscm cheetah classic',$1,'https://www.gtabase.com/special')",[special.id]);
+    const created=await ingest();
+    const data={vehicleDiscounts:[{name:'Cheetah Classic',discount:'30% off — GTA$605,500'}]};
+    const week=await one("insert into public.weekly_updates(slug,event_start,event_end,source_url,article_id,data) values('weekly-test',now(),now()+interval '7 days','https://www.gtabase.com/weekly',$1,$2::jsonb) returning id",[created.article_id,JSON.stringify(data)]);
+    expect((await one('select vehicle_id from public.weekly_vehicle_offers')).vehicle_id).toBeNull();
+    await db.query("insert into public.vehicle_aliases(alias,vehicle_id,source_url) values('cheetah classic',$1,'https://www.gtabase.com/standard')",[standard.id]);
+    expect(await one('select vehicle_id,discount_percent,sale_price from public.weekly_vehicle_offers')).toMatchObject({vehicle_id:standard.id,discount_percent:'30',sale_price:'605500'});
+    await db.query('update public.weekly_updates set data=$1::jsonb where id=$2',[JSON.stringify(data),week.id]);
+    expect((await one('select count(*)::int n from public.weekly_vehicle_offers')).n).toBe(1);
+    expect((await one('select vehicle_id from public.weekly_vehicle_offers')).vehicle_id).toBe(standard.id);
+    await db.query('update public.weekly_updates set data=$1::jsonb where id=$2',[JSON.stringify({vehicleDiscounts:[]}),week.id]);
+    expect((await one('select count(*)::int n from public.weekly_vehicle_offers')).n).toBe(0);
+    for (const role of ['anon','authenticated']) for (const table of ['vehicle_aliases','weekly_vehicle_offers']) {
+      expect((await one('select has_table_privilege($1,$2,$3) allowed',[role,`public.${table}`,'select'])).allowed).toBe(false);
+    }
+  });
   it('applies migrations including analytics and denies anonymous read/RPC execution', async () => {
     const functions = await one("select has_function_privilege('anon','public.ingest_source_item(uuid,uuid,uuid,jsonb,jsonb,jsonb)','execute') allowed");
     expect(functions.allowed).toBe(false);

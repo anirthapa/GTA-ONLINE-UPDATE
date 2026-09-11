@@ -1,292 +1,236 @@
 import Link from "next/link";
 import {
   ArrowUpRight,
+  CarFront,
+  BookOpen,
+  Trophy,
+  Zap,
   Radio,
   ShieldCheck,
-  ChevronRight,
-  Gamepad2,
-  Car,
-  BookOpen,
 } from "lucide-react";
 import {
   getArticles,
   getSettings,
   getWeeklyUpdate,
+  getWeeklyOffers,
 } from "@/services/public-data";
-import {
-  ArticleGrid,
-  SectionHeading,
-  StoryImage,
-  Verification,
-  WeeklyPanel,
-} from "@/components/editorial";
+import { ArticleGrid, SectionHeading } from "@/components/editorial";
 import { ReleaseCountdown } from "@/components/interactive";
+import { VehicleCard } from "@/components/vehicle-card";
+import { MediaImage } from "@/components/media-image";
 import { date } from "@/lib/utils";
-import { getTrending } from "@/lib/trending";
 export const dynamic = "force-dynamic";
 export default async function Home() {
-  const [articles, week, settings, popular] = await Promise.all([
-    getArticles({ limit: 12 }),
+  const [articles, week, settings] = await Promise.all([
+    getArticles({ limit: 6 }),
     getWeeklyUpdate(),
     getSettings(),
-    getTrending(),
   ]);
-  const featured = articles.find((a) => a.featured) || articles[0];
-  const trending = popular.filter((a) => a.id !== featured?.id).slice(0, 4);
-  const breaking = articles.find(
-    (a) =>
-      a.breaking &&
-      a.breaking_expires_at &&
-      new Date(a.breaking_expires_at) > new Date(),
-  );
+  const offers = await getWeeklyOffers(week);
+  const lead = offers.find((o) => o.vehicle?.image);
   return (
-    <>
-      <div className="wire-ticker">
-        <div className="container">
-          <span className="ticker-label">
-            <Radio size={14} /> ON THE WIRE
-          </span>
-          {breaking ? (
-            <Link href={`/news/${breaking.slug}`}>
-              {breaking.title} <ArrowUpRight size={14} />
-            </Link>
-          ) : (
-            <span>GTA Online. GTA VI. Everything worth knowing.</span>
-          )}
-          <span className="ticker-right">INDEPENDENT. ALWAYS.</span>
-        </div>
+    <div className="container homepage wire-home">
+      <div className="home-masthead">
+        <p className="eyebrow">
+          <Radio size={15} /> INDEPENDENT GTA INTELLIGENCE
+        </p>
+        <span>{date(new Date().toISOString())}</span>
       </div>
-      <div className="container homepage">
-        <div className="edition-heading">
-          <p className="eyebrow">YOUR DAILY CONNECTION TO THE WORLD OF GTA</p>
-          <span>
-            <ShieldCheck size={14} /> Sources first. Speculation labeled.
-          </span>
-        </div>
-        <section className="hero-grid">
-          <article className="featured-story">
-            {featured ? (
-              <>
-                <StoryImage article={featured} priority />
-                <div className="hero-shade" />
-                <div className="hero-copy">
-                  <div className="hero-tags">
-                    <span className="badge lime">THE BIG STORY</span>
-                    <Verification value={featured.verification_status} />
-                    {featured.is_seed && (
-                      <span className="badge">SAMPLE EDITION</span>
-                    )}
-                  </div>
-                  <h1>
-                    <Link href={`/news/${featured.slug}`}>
-                      {featured.title}
-                    </Link>
-                  </h1>
-                  <p>{featured.excerpt}</p>
-                  <div className="hero-bottom">
-                    <span>
-                      {featured.is_seed
-                        ? "Development sample"
-                        : featured.source_name}{" "}
-                      <span>•</span> {date(featured.published_at)}
-                    </span>
-                    <Link
-                      className="hero-link"
-                      href={`/news/${featured.slug}`}
-                      aria-label={`Read ${featured.title}`}
-                    >
-                      <ArrowUpRight />
-                    </Link>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="hero-copy no-image">
-                <span className="badge lime">WELCOME TO THE WIRE</span>
-                <h1>
-                  The city never stops.
-                  <br />
-                  Stay in the know.
-                </h1>
-                <p>
-                  Your independent connection to GTA Online and GTA VI. Sourced
-                  updates will appear here after verification.
-                </p>
-                <Link className="button" href="/gta-online/weekly-update">
-                  This week in GTA Online <ArrowUpRight size={18} />
-                </Link>
-              </div>
-            )}
-          </article>
-          <aside className="trending-panel">
-            <div className="trending-heading">
-              <h2>
-                On the radar<span>.</span>
-              </h2>
-              <span className="eyebrow">TRENDING</span>
-            </div>
-            {trending.length ? (
-              trending.map((a, i) => (
-                <Link
-                  href={`/news/${a.slug}`}
-                  className="trending-story"
-                  key={a.id}
-                >
-                  <span className="trend-number">0{i + 1}</span>
-                  <div>
-                    <p className="eyebrow">
-                      {a.game.replaceAll("_", " ")} {a.is_seed && " / SAMPLE"}
-                    </p>
-                    <h3>{a.title}</h3>
-                    <span className="muted">
-                      {a.is_seed ? "Development sample" : date(a.published_at)}
-                    </span>
-                  </div>
-                  <ArrowUpRight size={16} />
-                </Link>
-              ))
-            ) : (
-              <div className="radar-empty">
-                <Radio size={36} />
-                <p>Monitoring the next big story.</p>
-                <span className="muted">
-                  Published stories will appear here.
-                </span>
-              </div>
-            )}
-            <Link href="/news" className="radar-bottom">
-              All the latest news <ChevronRight size={16} />
-            </Link>
-          </aside>
-        </section>
-        <div className="topic-strip">
-          <span>JUMP INTO</span>
-          {[
-            ["Weekly bonuses", "/gta-online/weekly-update"],
-            ["GTA VI intel", "/gta-6"],
-            ["Money guides", "/guides"],
-            ["Vehicle database", "/gta-online/vehicles"],
-            ["Heist planning", "/gta-online/heists"],
-          ].map(([n, h]) => (
-            <Link href={h} key={h}>
-              {n}
-              <ArrowUpRight size={14} />
-            </Link>
-          ))}
-        </div>
-        <div className="section-block">
-          <SectionHeading
-            kicker="MAKE YOUR NEXT SESSION COUNT"
-            title="GTA Online this week"
-            href="/gta-online/weekly-update"
-            action="Explore the update"
-          />
-          <WeeklyPanel week={week} />
-        </div>
-        <section className="section-block">
-          <SectionHeading
-            kicker="FRESH FROM THE WIRE"
-            title="The latest intel"
-            href="/news"
-            action="All stories"
-          />
-          <ArticleGrid articles={articles.slice(0, 6)} />
-        </section>
-        <section className="vi-banner">
-          <div>
-            <p className="eyebrow">NEXT STOP: LEONIDA</p>
-            <div className="vi-wordmark">
-              GRAND THEFT AUTO <span>VI</span>
-            </div>
-            <p>Every announcement. Every detail. One place to keep up.</p>
-            <Link href="/gta-6" className="text-link">
-              Enter the GTA VI hub <ArrowUpRight size={18} />
-            </Link>
-          </div>
-          <div>
-            <p className="eyebrow">THE COUNTDOWN</p>
-            <ReleaseCountdown
-              date={settings.release_date}
-              verified={
-                !!(settings.release_source_url && settings.release_verified_at)
-              }
+      <section className="home-cover">
+        <div className="home-cover-image">
+          {lead?.vehicle && (
+            <MediaImage
+              src={lead.vehicle.image}
+              alt={`${lead.vehicle.name}, featured in this week’s vehicle offers`}
+              priority
+              sizes="100vw"
             />
-            {settings.release_source_url && (
-              <a
-                href={settings.release_source_url}
-                className="muted"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Official release information ↗
-              </a>
-            )}
+          )}
+        </div>
+        <div className="home-cover-shade" />
+        <div className="home-cover-copy">
+          <span className="edition-pill">WELCOME TO LOS SANTOS WIRE</span>
+          <h1>
+            The city moves fast.
+            <br />
+            <span>Stay one step ahead.</span>
+          </h1>
+          <p>
+            Your GTA Online week, the next ride for your garage, and the road to
+            GTA VI. All in one place.
+          </p>
+          <div className="hero-actions">
+            <Link className="button" href="/gta-online/weekly-update">
+              This week’s briefing <ArrowUpRight size={18} />
+            </Link>
+            <Link className="cover-secondary" href="/gta-online/vehicles">
+              Explore the garage
+            </Link>
           </div>
-        </section>
-        <section className="section-block">
-          <SectionHeading
-            kicker="KNOW THE CITY. OWN YOUR SESSION."
-            title="Get ahead of the game"
-            href="/guides"
-            action="All guides"
-          />
-          <div className="quick-guides">
-            {[
-              [
-                Gamepad2,
-                "Plan your next score",
-                "Heist guides, approaches and verified requirements.",
-                "/gta-online/heists",
-                "01",
-              ],
-              [
-                Car,
-                "Find your next ride",
-                "Browse the garage. Compare verified specifications.",
-                "/gta-online/vehicles",
-                "02",
-              ],
-              [
-                BookOpen,
-                "Make every move count",
-                "Guides for businesses, missions and starting out.",
-                "/guides",
-                "03",
-              ],
-            ].map(([Icon, title, description, href, index]) => {
-              const I = Icon as typeof Car;
-              return (
-                <Link
-                  key={href as string}
-                  href={href as string}
-                  className="guide-tile"
-                >
-                  <div>
-                    <I size={30} />
-                    <span>{index as string}</span>
-                  </div>
-                  <h3>{title as string}</h3>
-                  <p>{description as string}</p>
-                  <ArrowUpRight size={21} />
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-        <div className="editorial-promise">
-          <ShieldCheck size={28} />
+        </div>
+        {lead && (
+          <Link
+            className="cover-caption"
+            href={`/gta-online/vehicles/${lead.vehicle!.slug}`}
+          >
+            <span>IN THE SPOTLIGHT</span>
+            <strong>
+              {lead.vehicle!.name} · {lead.discount_percent}% off
+            </strong>
+            <ArrowUpRight size={21} />
+          </Link>
+        )}
+      </section>
+      <div className="home-quick-grid">
+        {[
+          [
+            Zap,
+            "This week",
+            week
+              ? `${offers.length} vehicle offers + ${week.data.bonuses.length} bonus activities`
+              : "The latest sourced event briefing",
+            "/gta-online/weekly-update",
+          ],
+          [
+            CarFront,
+            "The garage",
+            "Find a ride. Know the specs.",
+            "/gta-online/vehicles",
+          ],
+          [BookOpen, "The playbook", "Guides to your next move", "/guides"],
+          [
+            Trophy,
+            "The next score",
+            "Heists, approaches, and planning",
+            "/gta-online/heists",
+          ],
+        ].map(([Icon, title, desc, href]) => {
+          const I = Icon as typeof Zap;
+          return (
+            <Link
+              key={href as string}
+              className="home-quick-card"
+              href={href as string}
+            >
+              <I size={24} />
+              <div>
+                <h2>{title as string}</h2>
+                <p>{desc as string}</p>
+              </div>
+              <ArrowUpRight size={18} />
+            </Link>
+          );
+        })}
+      </div>
+      {week && (
+        <section className="home-week">
           <div>
-            <h3>The story matters. So does the source.</h3>
+            <p className="eyebrow">ON THE CLOCK / GTA ONLINE</p>
+            <h2>Your week in Los Santos.</h2>
             <p>
-              Official announcements, independent reporting and community
-              speculation are always clearly distinguished.
+              {date(week.event_start)} —{" "}
+              {date(new Date(Date.parse(week.event_end) - 1).toISOString())}
             </p>
+            <Link className="text-link" href="/gta-online/weekly-update">
+              Open the full briefing <ArrowUpRight size={18} />
+            </Link>
           </div>
-          <Link href="/about" className="text-link">
-            Our editorial approach <ArrowUpRight size={16} />
+          <div className="home-week-bonuses">
+            {week.data.bonuses.slice(0, 3).map((b) => (
+              <div key={b.activity}>
+                <strong>{b.moneyMultiplier || b.rpMultiplier}×</strong>
+                <small>
+                  {b.moneyMultiplier === b.rpMultiplier
+                    ? "GTA$ + RP"
+                    : b.moneyMultiplier
+                      ? "GTA$"
+                      : "RP"}
+                </small>
+                <h3>{b.activity}</h3>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      {offers.length > 0 && (
+        <section className="edition-section">
+          <SectionHeading
+            kicker="THE WEEKLY SHORTLIST"
+            title="Good rides. Better prices."
+            href="/gta-online/weekly-update#vehicle-deals"
+            action={`All ${offers.length} offers`}
+          />
+          <div className="ride-grid">
+            {offers
+              .filter((o) => o.vehicle)
+              .slice(0, 3)
+              .map((o) => (
+                <VehicleCard key={o.name} vehicle={o.vehicle!} offer={o} />
+              ))}
+          </div>
+        </section>
+      )}
+      <section className="next-chapter">
+        <div>
+          <span className="eyebrow">NEXT STOP / LEONIDA</span>
+          <h2>
+            A whole new
+            <br />
+            state of mind<span>.</span>
+          </h2>
+          <p>
+            GTA VI release details, official announcements, and everything we
+            know so far.
+          </p>
+          <Link className="button secondary" href="/gta-6">
+            Enter the GTA VI hub <ArrowUpRight size={18} />
           </Link>
         </div>
+        <div className="next-chapter-countdown">
+          <span className="vi-monogram" aria-hidden="true">
+            VI
+          </span>
+          <p className="eyebrow">THE ROAD TO RELEASE</p>
+          <ReleaseCountdown
+            date={settings.release_date}
+            verified={Boolean(
+              settings.release_source_url && settings.release_verified_at,
+            )}
+          />
+          {settings.release_source_url && (
+            <a
+              className="text-link"
+              href={settings.release_source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Official release information ↗
+            </a>
+          )}
+        </div>
+      </section>
+      <section className="edition-section">
+        <SectionHeading
+          kicker="FROM THE NEWSROOM"
+          title="The latest on the wire."
+          href="/news"
+          action="All stories"
+        />
+        <ArticleGrid articles={articles} />
+      </section>
+      <div className="editorial-promise">
+        <ShieldCheck size={28} />
+        <div>
+          <h3>Know the story. Know the source.</h3>
+          <p>
+            Independent coverage. Official news, media reports, and rumors
+            clearly labeled.
+          </p>
+        </div>
+        <Link className="text-link" href="/about">
+          About the Wire <ArrowUpRight size={17} />
+        </Link>
       </div>
-    </>
+    </div>
   );
 }

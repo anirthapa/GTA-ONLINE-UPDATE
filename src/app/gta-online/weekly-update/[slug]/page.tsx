@@ -1,5 +1,9 @@
 import { notFound } from "next/navigation";
-import { getVehicles, getWeeklyUpdate, getWeeklyArchive } from "@/services/public-data";
+import {
+  getWeeklyOffers,
+  getWeeklyUpdate,
+  getWeeklyArchive,
+} from "@/services/public-data";
 import { WeeklyPage } from "@/components/weekly-page";
 import { indexingAllowed } from "@/lib/seo";
 export const dynamic = "force-dynamic";
@@ -13,7 +17,10 @@ export async function generateMetadata({
   return {
     title: `GTA Online weekly archive — ${slug}`,
     alternates: { canonical: `/gta-online/weekly-update/${slug}` },
-    robots: { index: indexingAllowed() && Boolean(week && !week.is_seed), follow: true },
+    robots: {
+      index: indexingAllowed() && Boolean(week && !week.is_seed),
+      follow: true,
+    },
   };
 }
 export default async function Page({
@@ -21,11 +28,11 @@ export default async function Page({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const [week, archive, vehicles] = await Promise.all([
+  const [week, archive] = await Promise.all([
     getWeeklyUpdate((await params).slug),
     getWeeklyArchive(),
-    getVehicles(),
   ]);
   if (!week) notFound();
-  return <WeeklyPage week={week} archive={archive} vehicles={vehicles} archived />;
+  const offers = await getWeeklyOffers(week);
+  return <WeeklyPage week={week} archive={archive} offers={offers} archived />;
 }

@@ -1,6 +1,6 @@
 import 'server-only';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import type { Article, Guide, Settings, Vehicle, WeeklyUpdate } from './types';
+import type { Article, Guide, Settings, Vehicle, VehicleOffer, WeeklyUpdate } from './types';
 import { DEFAULT_SETTINGS } from './defaults';
 import { DEMO_ARTICLES, DEMO_GUIDES, DEMO_VEHICLES, DEMO_WEEKLY, demoAllowed } from './demo';
 import { cached } from './cache';
@@ -75,6 +75,14 @@ export async function getVehicles(): Promise<Vehicle[]> {
   let request = getDb().from('vehicles').select('*').order('name').limit(500);
   if (!demoAllowed()) request = request.eq('is_seed', false).not('verified_at', 'is', null);
   const { data, error } = await request; check(error); return (data || []) as Vehicle[];
+}
+// Call only with a week returned by the publication/date-gated getWeeklyUpdate.
+export async function getWeeklyOffers(week: WeeklyUpdate | null): Promise<VehicleOffer[]> {
+  if (!week || !isDatabaseConfigured()) return [];
+  const { data, error } = await getDb().from('weekly_vehicle_offers')
+    .select('*,vehicle:vehicles(*)').eq('weekly_update_id', week.id).order('position');
+  check(error);
+  return (data || []) as VehicleOffer[];
 }
 export async function getVehicle(slug: string): Promise<Vehicle | null> {
   if (!isDatabaseConfigured()) return demoAllowed() ? DEMO_VEHICLES.find(row => row.slug === slug) || null : null;

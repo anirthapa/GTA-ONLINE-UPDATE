@@ -1,296 +1,389 @@
 import Link from "next/link";
 import {
-  ArrowRight,
   ArrowUpRight,
   BadgePercent,
   CalendarDays,
-  CarFront,
   Gift,
-  Sparkles,
+  ShieldCheck,
+  Trophy,
+  Zap,
+  CarFront,
+  Crosshair,
+  Crown,
+  NotebookPen,
 } from "lucide-react";
-import type { Vehicle, WeeklyUpdate } from "@/services/types";
-import {
-  Breadcrumbs,
-  EmptyState,
-  WeeklyPanel,
-  SectionHeading,
-} from "@/components/editorial";
-import { MediaImage } from "@/components/media-image";
-import { date, money } from "@/lib/utils";
-function minutesSince(value: string) {
-  return Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000)).toLocaleString();
-}
-function discountFor(
-  vehicleName: string,
-  discounts: Map<string, string>,
-): string | undefined {
-  const name = vehicleName.toLowerCase();
-  return [...discounts.entries()].find(
-    ([discountName]) =>
-      name === discountName ||
-      name.endsWith(` ${discountName}`) ||
-      name.includes(` ${discountName}`),
-  )?.[1];
-}
-export async function WeeklyPage({
+import type { VehicleOffer, WeeklyUpdate } from "@/services/types";
+import { Breadcrumbs, EmptyState, SectionHeading } from "./editorial";
+import { MediaImage } from "./media-image";
+import { VehicleCard } from "./vehicle-card";
+import { date } from "@/lib/utils";
+
+export function WeeklyPage({
   week,
   archive,
-  vehicles,
+  offers,
   archived = false,
 }: {
   week: WeeklyUpdate | null;
   archive: WeeklyUpdate[];
-  vehicles: Vehicle[];
+  offers: VehicleOffer[];
   archived?: boolean;
 }) {
-  const discountMap = new Map(
-    week?.data.vehicleDiscounts.map((discount) => [
-      discount.name.toLowerCase(),
-      discount.discount,
-    ]) ?? [],
-  );
-  const discountedVehicles = vehicles
-    .filter((vehicle) => discountFor(vehicle.name, discountMap))
-    .slice(0, 6);
-  const featuredVehicles = discountedVehicles.length
-    ? discountedVehicles
-    : vehicles.slice(0, 6);
-  const vehicleForDiscount = (discountName: string) =>
-    vehicles.find((vehicle) => {
-      const vehicleName = vehicle.name.toLowerCase();
-      const name = discountName.toLowerCase();
-      return (
-        vehicleName === name ||
-        vehicleName.endsWith(` ${name}`) ||
-        vehicleName.includes(` ${name}`)
-      );
-    });
-  const sections = week
-    ? ([
-        [
-          "Weekly challenge",
-          week.data.weeklyChallenge ? [week.data.weeklyChallenge] : [],
-        ],
-        ["Free rewards", week.data.freeItems],
-        ["Login rewards", week.data.loginRewards],
-        ["New vehicles", week.data.newVehicles],
-        [
-          "Property discounts",
-          week.data.propertyDiscounts.map((v) => `${v.name}: ${v.discount}`),
-        ],
-        ["Weapons & Gun Van", week.data.weapons],
-        ["GTA+ benefits", week.data.gtaPlusBenefits],
-        ["Featured activities", week.data.featuredModes],
-        ["Important notes", week.data.importantNotes],
-      ] as [string, string[]][])
+  const end = week
+    ? date(new Date(Date.parse(week.event_end) - 1).toISOString())
+    : "";
+  const featured = [...offers]
+    .filter((o) => o.vehicle?.image)
+    .sort((a, b) => (b.discount_percent ?? 0) - (a.discount_percent ?? 0))[0];
+  const groups = week
+    ? [
+        {
+          id: "rewards",
+          title: "Free rewards",
+          icon: Gift,
+          items: week.data.freeItems,
+        },
+        {
+          id: "new-vehicles",
+          title: "New arrivals",
+          icon: CarFront,
+          items: week.data.newVehicles,
+        },
+        {
+          id: "property",
+          title: "Property offers",
+          icon: BadgePercent,
+          items: week.data.propertyDiscounts.map(
+            (v) => `${v.name}: ${v.discount}`,
+          ),
+        },
+        {
+          id: "gun-van",
+          title: "Weapons & Gun Van",
+          icon: Crosshair,
+          items: week.data.weapons,
+        },
+        {
+          id: "gta-plus",
+          title: "GTA+ benefits",
+          icon: Crown,
+          items: week.data.gtaPlusBenefits,
+        },
+        {
+          id: "login",
+          title: "Login rewards",
+          icon: Gift,
+          items: week.data.loginRewards,
+        },
+        {
+          id: "activities",
+          title: "Featured activities",
+          icon: Zap,
+          items: week.data.featuredModes,
+        },
+      ]
     : [];
   return (
-    <div className="container page-content">
+    <div className="container page-content weekly-edition">
       <Breadcrumbs
         items={[
           { name: "GTA Online", href: "/gta-online" },
-          { name: "Weekly Update", href: "/gta-online/weekly-update" },
+          { name: "Weekly update", href: "/gta-online/weekly-update" },
         ]}
       />
-      <div className="page-heading">
-        <p className="eyebrow">THE WEEKLY BRIEFING</p>
-        <h1>
-          {archived
-            ? "An earlier week in Los Santos."
-            : "GTA Online this week."}
-        </h1>
-        <p>
-          Bonus GTA$ and RP, discounts, new content and limited-time rewards.
-          All in one briefing.
-        </p>
-      </div>
-      {week && (
-        <div className="weekly-command-bar">
-          <div className="weekly-command-status">
-            <span className="status-dot" aria-hidden="true" />
-            <div>
-              <p className="eyebrow">{archived ? "ARCHIVE FILE" : "LIVE FROM LOS SANTOS"}</p>
-              <strong>{date(week.event_start)} – {date(new Date(new Date(week.event_end).getTime() - 1).toISOString())}</strong>
-            </div>
-          </div>
-          <div className="weekly-command-facts">
-            <span><CalendarDays size={17} /> {week.data.bonuses.length} active bonuses</span>
-            <span><BadgePercent size={17} /> {week.data.vehicleDiscounts.length} vehicle deals</span>
-            <span><Gift size={17} /> {week.data.freeItems.length} free rewards</span>
-          </div>
+      <header className="edition-title">
+        <div>
+          <p className="eyebrow">LOS SANTOS WIRE / THE WEEKLY EDITION</p>
+          <h1>{archived ? "From the archives." : "Your week. Upgraded."}</h1>
+          <p>Where to earn more, what to claim, and which rides are on sale.</p>
         </div>
-      )}
-      {archived && (
-        <div className="notice">
-          Archived event. These offers are not presented as current.{" "}
-          <Link className="text-link" href="/gta-online/weekly-update">
-            View the current weekly update →
-          </Link>
-        </div>
-      )}
-      {week?.is_seed && (
-        <div className="notice">
-          Fictional development sample — these are not real GTA offers.
-        </div>
-      )}
-      {week && week.verification_status !== "CONFIRMED" && (
-        <div className="notice">
-          <strong>REPORTED UPDATE: </strong>
-          Current details are sourced from trusted GTA media and cross-checked,
-          but are awaiting official confirmation.
-        </div>
-      )}
-      {week && (
-        <div className="notice">
-          <strong>{archived ? "ARCHIVED" : "ACTIVE"}: </strong>
-          {date(week.event_start)} –{" "}
-          {date(new Date(new Date(week.event_end).getTime() - 1).toISOString())}
-          <span className="muted" style={{ display: "block" }}>
-            Last checked {minutesSince(week.last_checked_at)}{" "}
-            minutes ago.
+        {week && (
+          <span className="edition-date">
+            <CalendarDays size={19} />
+            {date(week.event_start)} — {end}
           </span>
-        </div>
-      )}
-      <WeeklyPanel week={week} full />
-      {week ? (
+        )}
+      </header>
+      {!week ? (
+        <EmptyState
+          title="The next briefing is on its way."
+          description="The current event will appear here when sourced details are available. Browse earlier editions below."
+        />
+      ) : (
         <>
-          <section className="weekly-deals-board">
-            <div className="weekly-deals-heading">
-              <div>
-                <p className="eyebrow"><BadgePercent size={15} /> THIS WEEK’S DEALS</p>
-                <h2>Upgrade your garage for less.</h2>
-                <p>Every vehicle offer in one quick scan, with catalog images where specifications are verified.</p>
-              </div>
-              <div className="weekly-deals-total">
-                <strong>{week.data.vehicleDiscounts.length}</strong>
-                <span>vehicle offers</span>
+          {archived && (
+            <div className="notice">
+              This event has ended.{" "}
+              <Link className="text-link" href="/gta-online/weekly-update">
+                Go to this week’s update →
+              </Link>
+            </div>
+          )}
+          {week.is_seed && (
+            <div className="notice">
+              Fictional development sample. These are not real offers.
+            </div>
+          )}
+          <div className="edition-lead">
+            <div className="edition-lead-copy">
+              <span className="edition-pill">
+                <Zap size={15} />
+                {archived ? "PAST EVENT" : "THIS WEEK IN GTA ONLINE"}
+              </span>
+              <h2>
+                Make every
+                <br />
+                session count<span>.</span>
+              </h2>
+              <p>
+                {week.data.bonuses.length} bonus activities.{" "}
+                {offers.length || week.data.vehicleDiscounts.length} vehicle
+                offers. Your entire week, in one briefing.
+              </p>
+              <div className="hero-actions">
+                <a className="button" href="#vehicle-deals">
+                  Explore vehicle deals <ArrowUpRight size={17} />
+                </a>
+                <a className="text-link" href="#bonuses">
+                  See all bonuses
+                </a>
               </div>
             </div>
-            {featuredVehicles.filter((vehicle) => discountFor(vehicle.name, discountMap)).length > 0 && (
-              <div className="weekly-deal-featured">
-                {featuredVehicles
-                  .filter((vehicle) => discountFor(vehicle.name, discountMap))
-                  .map((vehicle) => (
-                    <Link
-                      className="weekly-deal-feature-card"
-                      href={`/gta-online/vehicles/${vehicle.slug}`}
-                      key={vehicle.id}
-                    >
-                      <div className="weekly-deal-feature-image">
-                        {vehicle.image ? (
-                          <MediaImage
-                            src={vehicle.image}
-                            alt={`${vehicle.name} GTA Online vehicle`}
-                            sizes="(max-width: 760px) 100vw, 50vw"
-                          />
-                        ) : (
-                          <CarFront size={42} aria-hidden="true" />
-                        )}
-                        <span className="discount-badge">{discountFor(vehicle.name, discountMap)}</span>
-                      </div>
-                      <div className="weekly-deal-feature-copy">
-                        <p className="eyebrow">{vehicle.vehicle_class}</p>
-                        <h3>{vehicle.name}</h3>
-                        <span>{money(vehicle.price)} <ArrowUpRight size={15} aria-hidden="true" /></span>
-                      </div>
-                    </Link>
-                  ))}
+            {featured?.vehicle && (
+              <Link
+                className="edition-lead-image"
+                href={`/gta-online/vehicles/${featured.vehicle.slug}`}
+              >
+                <MediaImage
+                  src={featured.vehicle.image}
+                  alt={featured.vehicle.name}
+                  priority
+                  sizes="(max-width:760px) 100vw, 55vw"
+                />
+                <span className="lead-offer">
+                  {featured.discount_percent}%
+                  <small>
+                    {archived ? "PAST EVENT OFFER" : "OFF THIS WEEK"}
+                  </small>
+                </span>
+                <div className="lead-caption">
+                  <span>
+                    <small>FEATURED VEHICLE OFFER</small>
+                    <strong>{featured.vehicle.name}</strong>
+                  </span>
+                  <ArrowUpRight size={26} />
+                </div>
+              </Link>
+            )}
+          </div>
+          <div className="edition-provenance">
+            <ShieldCheck size={17} />
+            <span>
+              <strong>
+                {week.verification_status === "CONFIRMED"
+                  ? "Officially confirmed"
+                  : "Reported update"}
+              </strong>{" "}
+              ·{" "}
+              {week.verification_status === "CONFIRMED"
+                ? "Based on the official event announcement."
+                : "Sourced from GTA media; awaiting official confirmation."}
+            </span>
+            <a href="#sources">View sources ↗</a>
+          </div>
+          <nav className="edition-jump" aria-label="Weekly sections">
+            <a href="#bonuses">
+              <Zap size={16} /> Bonuses
+            </a>
+            <a href="#vehicle-deals">
+              <CarFront size={17} /> Vehicles{" "}
+              <span>{offers.length || week.data.vehicleDiscounts.length}</span>
+            </a>
+            <a href="#rewards">
+              <Gift size={17} /> Rewards
+            </a>
+            <a href="#gun-van">
+              <Crosshair size={17} /> Gun Van
+            </a>
+            <a href="#field-notes">
+              <NotebookPen size={17} /> Field notes
+            </a>
+          </nav>
+          <section className="edition-section" id="bonuses">
+            <SectionHeading
+              kicker="MAKE IT PAY"
+              title="More for every mission."
+            />
+            <div className="earn-grid">
+              {week.data.bonuses.map((b, i) => (
+                <article
+                  className={`earn-card ${i === 0 ? "earn-highlight" : ""}`}
+                  key={b.activity}
+                >
+                  <span className="earn-number">
+                    {b.moneyMultiplier ?? b.rpMultiplier ?? "—"}
+                    <small>×</small>
+                  </span>
+                  <span className="eyebrow">
+                    {b.moneyMultiplier && b.moneyMultiplier === b.rpMultiplier
+                      ? "GTA$ + RP"
+                      : b.moneyMultiplier
+                        ? "GTA$"
+                        : "RP"}
+                  </span>
+                  <h3>{b.activity}</h3>
+                  {b.rpMultiplier &&
+                  b.moneyMultiplier &&
+                  b.rpMultiplier !== b.moneyMultiplier ? (
+                    <p>{b.rpMultiplier}× RP</p>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </section>
+          {week.data.weeklyChallenge && (
+            <section className="challenge-banner">
+              <span className="challenge-icon">
+                <Trophy size={32} />
+              </span>
+              <div>
+                <p className="eyebrow">YOUR WEEKLY CHALLENGE</p>
+                <h2>A little hustle. A bigger payday.</h2>
+                <p>{week.data.weeklyChallenge}</p>
+              </div>
+              <a href="#rewards" className="text-link">
+                See rewards <ArrowUpRight size={19} />
+              </a>
+            </section>
+          )}
+          <section className="edition-section" id="vehicle-deals">
+            <SectionHeading
+              kicker={archived ? "PAST VEHICLE OFFERS" : "THIS WEEK’S GARAGE"}
+              title="Your next ride is on sale."
+              href="/gta-online/vehicles"
+              action="Explore the garage"
+            />
+            <p className="section-intro">
+              {archived
+                ? "Prices shown were available during this event."
+                : "Browse every discounted vehicle. Open a card for performance, purchase options, and the full specifications."}
+            </p>
+            <div className="ride-grid">
+              {offers.map((offer) =>
+                offer.vehicle ? (
+                  <VehicleCard
+                    key={offer.name}
+                    vehicle={offer.vehicle}
+                    offer={offer}
+                    archived={archived}
+                  />
+                ) : (
+                  <article className="pending-offer" key={offer.name}>
+                    <CarFront size={32} />
+                    <h3>{offer.name}</h3>
+                    <strong>{offer.discount_text}</strong>
+                    <p>Vehicle profile being sourced.</p>
+                  </article>
+                ),
+              )}
+            </div>
+            {!offers.length && (
+              <div className="reward-list">
+                {week.data.vehicleDiscounts.map((v) => (
+                  <div key={v.name}>
+                    <strong>{v.name}</strong>
+                    <span>{v.discount}</span>
+                  </div>
+                ))}
               </div>
             )}
-            <div className="weekly-deal-list" aria-label="Vehicle discounts">
-              {week.data.vehicleDiscounts.map((discount, index) => {
-                const vehicle = vehicleForDiscount(discount.name);
-                const dealContent = (
-                  <>
-                    <span className="deal-number">{String(index + 1).padStart(2, "0")}</span>
-                    <span className="deal-name">
-                      <strong>{discount.name}</strong>
-                      <small>{vehicle?.vehicle_class ?? "Vehicle offer"}</small>
-                    </span>
-                    <span className="deal-value">{discount.discount}</span>
-                    <ArrowRight className="deal-arrow" size={18} aria-hidden="true" />
-                  </>
-                );
-                return vehicle ? (
-                  <Link className="weekly-deal-row" href={`/gta-online/vehicles/${vehicle.slug}`} key={`${discount.name}-${index}`}>
-                    {dealContent}
-                  </Link>
-                ) : (
-                  <div className="weekly-deal-row" key={`${discount.name}-${index}`}>
-                    {dealContent}
-                  </div>
-                );
-              })}
-            </div>
-            <Link className="weekly-deals-footer-link" href="/gta-online/vehicles">
-              Compare all verified vehicle specifications <ArrowUpRight size={16} />
-            </Link>
           </section>
-          <div className="weekly-section-heading">
-            <div>
-              <p className="eyebrow"><Sparkles size={15} /> FIELD NOTES</p>
-              <h2>Everything in the briefing.</h2>
+          <section className="edition-section" id="field-notes">
+            <SectionHeading
+              kicker="BEYOND THE GARAGE"
+              title="The rest of your week."
+            />
+            <div className="briefing-grid">
+              {groups.map(({ id, title, icon: Icon, items }) => (
+                <section
+                  id={id}
+                  className={`briefing-card ${!items.length ? "briefing-quiet" : ""}`}
+                  key={id}
+                >
+                  <div className="briefing-card-heading">
+                    <span>
+                      <Icon size={21} />
+                    </span>
+                    <h3>{title}</h3>
+                    {items.length > 0 && <small>{items.length}</small>}
+                  </div>
+                  {items.length ? (
+                    <ul>
+                      {items.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No rewards announced for this event.</p>
+                  )}
+                </section>
+              ))}
             </div>
-            <span className="muted">Checked {minutesSince(week.last_checked_at)} minutes ago</span>
-          </div>
-          <div className="detail-grid">
-            {sections.map(([title, items]) => (
-              <section className="panel detail-section" key={title}>
-                <h2>{title}</h2>
-                {items.length ? (
-                  <ul>
-                    {items.map((v, i) => (
-                      <li key={i}>{v}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="muted">
-                    No verified information published for this event.
-                  </p>
-                )}
-              </section>
-            ))}
-          </div>
-          <div className="source-box panel">
-            <p className="eyebrow">SOURCE & VERIFICATION</p>
-            <a href={week.source_url} target="_blank" rel="noopener noreferrer">
-              Read the original event announcement ↗
+          </section>
+          {week.data.importantNotes.length > 0 && (
+            <details className="edition-notes" open>
+              <summary>
+                Event notes & time trials{" "}
+                <span>{week.data.importantNotes.length} updates</span>
+              </summary>
+              <ul>
+                {week.data.importantNotes.map((note) => (
+                  <li key={note}>{note}</li>
+                ))}
+              </ul>
+            </details>
+          )}
+          <section className="edition-source" id="sources">
+            <ShieldCheck size={27} />
+            <div>
+              <p className="eyebrow">SOURCE & VERIFICATION</p>
+              <h3>The details behind the briefing.</h3>
+              <p>
+                Last checked {date(week.last_checked_at)}. Vehicle images and
+                specifications are attributed on each vehicle page.
+              </p>
+            </div>
+            <a
+              className="button secondary"
+              href={week.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Read event coverage <ArrowUpRight size={16} />
             </a>
-            <p className="muted">Last updated: {date(week.last_checked_at)}</p>
-          </div>
+          </section>
         </>
-      ) : (
-        <div style={{ marginTop: 25 }}>
-          <EmptyState
-            title="Waiting for this week’s update."
-            description="No active event has been published yet. Expired bonuses are automatically removed from the current briefing. You can explore previous events below."
-          />
-        </div>
       )}
-      <section className="section-block">
-        <SectionHeading title="Previous weekly updates" />
-        <div className="resource-grid">
-          {archive.length ? (
-            archive.map((w) => (
+      {archive.length > 0 && (
+        <section className="edition-section">
+          <SectionHeading title="Previous editions" />
+          <div className="resource-grid">
+            {archive.map((w) => (
               <Link
                 className="resource-card"
                 key={w.id}
                 href={`/gta-online/weekly-update/${w.slug}`}
               >
-                <span className="eyebrow">
-                  {w.is_seed ? "SAMPLE ARCHIVE" : "ARCHIVE"}
-                </span>
+                <p className="eyebrow">ARCHIVED EDITION</p>
                 <h3>{date(w.event_start)}</h3>
-                <p>View the event briefing →</p>
+                <span className="text-link">
+                  Read the briefing <ArrowUpRight size={17} />
+                </span>
               </Link>
-            ))
-          ) : (
-            <p className="muted">
-              The archive will grow as weekly updates are published.
-            </p>
-          )}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

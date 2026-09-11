@@ -24,10 +24,17 @@ export interface WeeklyUpdate {
   status?: string; verification_status?: string;
 }
 export interface Vehicle {
+  model_name?: string | null; manufacturer?: string | null; trade_price?: number | null;
+  gallery?: string[]; specifications?: Record<string, string>;
   confidence_score?: number;
   id: string; slug: string; name: string; vehicle_class: string; price: number | null; top_speed: number | null;
   retailer: string | null; seats: number | null; image: string | null; description: string; source_url: string | null;
   verified_at: string | null; is_seed: boolean; features: string[]; added_at: string | null;
+}
+export interface VehicleOffer {
+  weekly_update_id: string; name: string; vehicle_id: string | null;
+  discount_text: string; discount_percent: number | null; sale_price: number | null;
+  position: number; vehicle: Vehicle | null;
 }
 export interface Guide {
   confidence_score?: number;

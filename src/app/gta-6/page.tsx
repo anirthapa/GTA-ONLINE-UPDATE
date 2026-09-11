@@ -34,10 +34,14 @@ export default async function VI() {
           actually know — with speculation clearly marked.
         </p>
       </div>
-      <section className="vi-banner" style={{ marginTop: 0 }}>
+      <section className="next-chapter" style={{ marginTop: 0 }}>
         <div>
           <p className="eyebrow">GRAND THEFT AUTO VI</p>
-          <h2 style={{ marginTop: 18 }}>The next chapter.</h2>
+          <h2 style={{ marginTop: 18 }}>
+            Welcome to
+            <br />
+            what’s next<span>.</span>
+          </h2>
           <p style={{ marginTop: 15 }}>
             Release information is updated only when it has an official source.
           </p>
@@ -45,7 +49,10 @@ export default async function VI() {
             Release details <ArrowUpRight size={17} />
           </Link>
         </div>
-        <div>
+        <div className="next-chapter-countdown">
+          <span className="vi-monogram" aria-hidden="true">
+            VI
+          </span>
           <p className="eyebrow">GTA VI RELEASES IN</p>
           <ReleaseCountdown
             date={s.release_date}

@@ -18,6 +18,15 @@ function subscribe(callback: () => void) {
 }
 export function Navigation() {
   const path = usePathname();
+  const primary = navigation.filter(
+    ([, href]) => !["/gta-online/heists", "/rumors"].includes(href),
+  );
+  const active = [...primary]
+    .sort((a, b) => b[1].length - a[1].length)
+    .find(
+      ([, href]) =>
+        path === href || (href !== "/" && path.startsWith(`${href}/`)),
+    )?.[1];
   const theme = useSyncExternalStore(
     subscribe,
     () => document.documentElement.dataset.theme || "dark",
@@ -46,19 +55,25 @@ export function Navigation() {
           </span>
         </Link>
         <nav className="desktop-nav" aria-label="Main navigation">
-          {navigation.map(([name, href]) => (
+          {primary.map(([name, href]) => (
             <Link
               key={href}
               href={href}
-              className={path === href ? "active" : ""}
+              className={active === href ? "active" : ""}
+              aria-current={active === href ? "page" : undefined}
             >
               {name}
             </Link>
           ))}
         </nav>
         <div className="header-actions">
-          <Link href="/search" className="icon-button" aria-label="Search">
-            <Search size={20} />
+          <Link
+            href="/search"
+            className="header-search"
+            aria-label="Search the site"
+          >
+            <Search size={18} />
+            <span>Search</span>
           </Link>
           <button
             onClick={toggle}
