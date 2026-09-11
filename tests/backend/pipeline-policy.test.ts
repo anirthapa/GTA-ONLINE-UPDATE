@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ingestionBudget, isGtaRelevant, safeError } from '../../src/services/ingestion/pipeline';
+import { ingestionBudget, isGtaRelevant, isWeeklySourceDue, safeError } from '../../src/services/ingestion/pipeline';
 describe('pre-AI cost and log controls', () => {
   it('filters unrelated Rockstar and Red Dead entries without excluding explicit GTA terms', () => {
     expect(isGtaRelevant({ title: 'Rockstar Games news', content: 'Red Dead Redemption receives a fictional test update.' })).toBe(false);
@@ -14,5 +14,12 @@ describe('pre-AI cost and log controls', () => {
   it('redacts secrets before persistence', () => {
     const error = safeError(new Error('sk-secret123 Bearer secret https://api.example.com/?api_key=private&x=1'));
     expect(error).not.toContain('sk-secret123'); expect(error).not.toContain('Bearer secret'); expect(error).not.toContain('private');
+  });
+  it('gates weekly sources to Thursday after the configured reset window', () => {
+    const source = { category: 'WEEKLY_UPDATE' as const };
+    expect(isWeeklySourceDue(source, new Date('2026-09-10T09:59:00.000Z'))).toBe(false);
+    expect(isWeeklySourceDue(source, new Date('2026-09-10T10:00:00.000Z'))).toBe(true);
+    expect(isWeeklySourceDue(source, new Date('2026-09-11T10:00:00.000Z'))).toBe(false);
+    expect(isWeeklySourceDue({ category: 'NEWS' }, new Date('2026-09-11T10:00:00.000Z'))).toBe(true);
   });
 });

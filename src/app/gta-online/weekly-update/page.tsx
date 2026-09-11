@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "GTA Online weekly update — bonuses, vehicles & discounts",
   description:
-    "Current verified GTA Online weekly bonuses, GTA$ and RP multipliers, discounts, rewards and event dates.",
+    "Current sourced GTA Online weekly bonuses, GTA$ and RP multipliers, discounts, rewards and event dates.",
   alternates: { canonical: "/gta-online/weekly-update" },
 };
 export default async function Page() {

@@ -7,6 +7,7 @@ import { requireAdmin } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { clearPublicCache } from '@/services/cache';
 import { runNewsSync } from '@/services/ingestion/pipeline';
+import { runVehicleSync, testVehicleSource } from '@/services/ingestion/catalog';
 import { testSource, validateSourceConfiguration } from '@/services/sources';
 import { isOfficialUrl, verifiedSourceTrust } from '@/services/trust';
 import type { Source } from '@/services/types';
@@ -140,7 +141,19 @@ export async function sourceOperation(id: string | null, operation: 'test' | 'sy
     if (id) z.uuid().parse(id);
     if (!['test', 'sync'].includes(operation) || (!id && operation === 'test')) return { error: 'Invalid source operation.' };
     if (form.get('operation') !== operation) return { error: 'Invalid source operation.' };
-    const result = operation === 'test' ? await testSource(id!) : await runNewsSync(id ? { sourceId: id } : {}, { budgetMs: 240_000 });
+    let result: Awaited<ReturnType<typeof testSource>> | Awaited<ReturnType<typeof runVehicleSync>> | Awaited<ReturnType<typeof runNewsSync>>;
+    if (id) {
+      const configured = await getDb().from('sources').select('category').eq('id', id).maybeSingle();
+      if (configured.error || !configured.data) throw configured.error ?? new Error('Source was not found.');
+      const vehicleSource = String(configured.data.category).trim().toUpperCase() === 'VEHICLES';
+      result = operation === 'test'
+        ? vehicleSource ? await testVehicleSource(id) : await testSource(id)
+        : vehicleSource ? await runVehicleSync({ sourceId: id }) : await runNewsSync({ sourceId: id }, { budgetMs: 240_000 });
+    } else if (operation === 'test') {
+      return { error: 'A source is required for testing.' };
+    } else {
+      result = await runNewsSync({}, { budgetMs: 240_000 });
+    }
     const refreshed = await refreshContent();
     if ('status' in result && (result.status === 'FAILED' || result.status === 'PARTIAL')) return { error: `Sync ${result.status === 'FAILED' ? 'failed' : 'completed partially'}: ${result.failed} source/item failures. Inspect the service result and activity logs.`, result: JSON.stringify(result, null, 2) };
     if ('status' in result && result.status === 'SKIPPED') return { success: `No sync was started. ${result.reason ?? 'Another run may already be active.'}`, result: JSON.stringify(result, null, 2) };

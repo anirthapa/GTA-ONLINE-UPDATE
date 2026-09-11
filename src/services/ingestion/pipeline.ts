@@ -31,6 +31,23 @@ export function ingestionBudget(value: unknown): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? Math.max(5000, Math.min(parsed, 240_000)) : 240_000;
 }
+export function sourceCategory(source: Pick<Source, 'category'>): string {
+  return source.category.trim().toUpperCase().replace(/[ -]+/g, '_');
+}
+export function isWeeklySource(source: Pick<Source, 'category'>): boolean {
+  return sourceCategory(source) === 'WEEKLY_UPDATE';
+}
+export function isWeeklySourceDue(source: Pick<Source, 'category'>, now = new Date()): boolean {
+  if (!isWeeklySource(source)) return true;
+  // Rockstar's event-week reset is reported at 10:00 GMT on Thursdays. The
+  // hour is configurable for a publisher page that changes its reset window;
+  // never infer a weekly event boundary from this scheduler gate.
+  const afterUtcHour = Number(process.env.WEEKLY_SYNC_AFTER_UTC_HOUR ?? 10);
+  return now.getUTCDay() === 4 && now.getUTCHours() >= (Number.isInteger(afterUtcHour) && afterUtcHour >= 0 && afterUtcHour <= 23 ? afterUtcHour : 10);
+}
+export function isCatalogSource(source: Pick<Source, 'category'>): boolean {
+  return sourceCategory(source) === 'VEHICLES';
+}
 export async function runNewsSync({ sourceId }: { sourceId?: string } = {}, deps: PipelineDependencies = {}): Promise<SyncResult> {
   if (sourceId) z.uuid().parse(sourceId);
   const db = deps.db || getDb();
@@ -63,7 +80,9 @@ export async function runNewsSync({ sourceId }: { sourceId?: string } = {}, deps
     result.status = 'SUCCESS';
     for (const source of (sources.data || []) as Source[]) {
       if (Date.now() >= deadline - 5000) { result.status = 'PARTIAL'; break; }
+      if (isCatalogSource(source)) continue;
       if (!sourceId && source.last_checked_at && Date.parse(source.last_checked_at) + source.fetch_frequency * 60_000 > Date.now()) continue;
+      if (!sourceId && !isWeeklySourceDue(source)) continue;
       await renew(); result.sources++;
       let itemFailures = 0, interrupted = false;
       try {
@@ -121,6 +140,23 @@ export async function runNewsSync({ sourceId }: { sourceId?: string } = {}, deps
             await renew();
             const committed = await rpc('ingest_source_item', { p_run_id: result.runId, p_owner: owner, p_source_id: source.id, p_item: item, p_article: article, p_weekly: weekly });
             committedSuccessfully = true;
+            if (weekly && source.trust_level !== 'OFFICIAL' && committed.action !== 'skipped' && committed.article_id) {
+              // Trusted-media weekly pages are useful accumulation inputs, but
+              // cannot establish CONFIRMED authority. Keep the extracted row in
+              // review until an editor verifies it against an official source.
+              try {
+                const weeklyReview = await db.from('weekly_updates').upsert({
+                  slug: `week-${weekly.event_start.slice(0, 10)}-${String(committed.article_id).slice(0, 8)}`,
+                  event_start: weekly.event_start, event_end: weekly.event_end,
+                  last_checked_at: new Date().toISOString(), source_url: item.url,
+                  article_id: committed.article_id, is_seed: false, data: weekly.data,
+                  status: 'REVIEW', verification_status: 'REPORTED',
+                }, { onConflict: 'article_id,event_start' });
+                assertResult(weeklyReview.error);
+              } catch (error) {
+                await log('WARN', 'weekly_review_persist_failed', safeError(error), source.id, { article_id: committed.article_id });
+              }
+            }
             if (committed.action === 'skipped') result.skipped++; else result.processed++;
             await log('INFO', `item_${committed.action}`, 'Source item processed.', source.id, { article_id: committed.article_id, status: committed.status });
           } catch (error) {
@@ -136,7 +172,7 @@ export async function runNewsSync({ sourceId }: { sourceId?: string } = {}, deps
           }
         }
         await renew();
-        const patch = interrupted ? {} : { last_checked_at: new Date().toISOString() };
+        const patch = interrupted || (isWeeklySource(source) && itemFailures > 0) ? {} : { last_checked_at: new Date().toISOString() };
         const sourceUpdate = await db.from('sources').update({ ...patch,
           ...(itemFailures || interrupted ? {} : { last_successful_fetch_at: new Date().toISOString() }),
           failure_count: itemFailures ? source.failure_count + 1 : 0,
@@ -146,7 +182,7 @@ export async function runNewsSync({ sourceId }: { sourceId?: string } = {}, deps
           { items: fetched.items.length, failed: itemFailures, rejected: fetched.rejected });
       } catch (error) {
         await renew(); result.failed++; result.status = 'PARTIAL';
-        const failure = await db.from('sources').update({ last_checked_at: new Date().toISOString(), failure_count: source.failure_count + 1 }).eq('id', source.id); assertResult(failure.error);
+        const failure = await db.from('sources').update({ ...(isWeeklySource(source) ? {} : { last_checked_at: new Date().toISOString() }), failure_count: source.failure_count + 1 }).eq('id', source.id); assertResult(failure.error);
         await log('ERROR', 'source_failed', safeError(error), source.id);
       }
     }

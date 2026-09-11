@@ -75,6 +75,13 @@ export async function WeeklyPage({
           Fictional development sample — these are not real GTA offers.
         </div>
       )}
+      {week && week.verification_status !== "CONFIRMED" && (
+        <div className="notice">
+          <strong>REPORTED UPDATE: </strong>
+          Current details are sourced from trusted GTA media and cross-checked,
+          but are awaiting official confirmation.
+        </div>
+      )}
       {week && (
         <div className="notice">
           <strong>{archived ? "ARCHIVED" : "ACTIVE"}: </strong>
@@ -119,7 +126,7 @@ export async function WeeklyPage({
         <div style={{ marginTop: 25 }}>
           <EmptyState
             title="Waiting for this week’s update."
-            description="No active, verified event has been published yet. Expired bonuses are automatically removed from the current briefing. You can explore previous events below."
+            description="No active event has been published yet. Expired bonuses are automatically removed from the current briefing. You can explore previous events below."
           />
         </div>
       )}

@@ -87,13 +87,22 @@ export async function fetchSource(source: Source, fetcher: SourceFetcher = safeF
       .transform(value => Array.isArray(value) ? value : value.items).parse(payload).slice(0, MAX_ITEMS_PER_SOURCE_FETCH);
   } else if (source.source_type === 'HTML') {
     const $ = load(response.body);
-    // Opt-in HTML is conservative: only explicit article elements with a headline
-    // and source-owned URL. It never recursively crawls links.
-    rawItems = $('article').slice(0, MAX_ITEMS_PER_SOURCE_FETCH).toArray().map(element => {
-      const article = $(element), link = article.find('h1 a,h2 a,h3 a').first();
-      return { url: link.attr('href') || response.url, title: article.find('h1,h2,h3').first().text(),
-        content: article.html(), publishedAt: article.find('time[datetime]').first().attr('datetime') };
-    });
+    if (source.category.trim().toUpperCase() === 'WEEKLY_UPDATE') {
+      // Some permitted reference pages publish one canonical, continuously
+      // updated event-week document rather than individual <article> nodes.
+      // Read that one page as one source item; never crawl its links.
+      const title = $('h1').first().text().trim() || $('title').first().text().trim();
+      rawItems = [{ url: response.url, title, content: plainText(response.body),
+        publishedAt: $('time[datetime]').first().attr('datetime') }];
+    } else {
+      // Opt-in HTML is conservative: only explicit article elements with a
+      // headline and source-owned URL. It never recursively crawls links.
+      rawItems = $('article').slice(0, MAX_ITEMS_PER_SOURCE_FETCH).toArray().map(element => {
+        const article = $(element), link = article.find('h1 a,h2 a,h3 a').first();
+        return { url: link.attr('href') || response.url, title: article.find('h1,h2,h3').first().text(),
+          content: article.html(), publishedAt: article.find('time[datetime]').first().attr('datetime') };
+      });
+    }
   } else {
     if (/<!DOCTYPE|<!ENTITY/i.test(response.body)) throw new Error('DTD/entity declarations are forbidden in feeds.');
     const parser = new Parser({ customFields: { feed: ['yt:channelId'], item: ['yt:channelId', 'yt:videoId', ['media:group', 'mediaGroup']] } });

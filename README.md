@@ -4,7 +4,7 @@ An independent GTA news and reference site built with Next.js 16 App Router, Typ
 
 This repository does not establish that any deployment, feed, credentials, or live ingestion have been verified. No Rockstar feed is guaranteed available. Live content requires operator-configured sources and publication approval/settings. Production public-data reads exclude fixtures even if `DEMO_MODE=true`; missing production database configuration returns empty content and safe settings.
 
-Autonomous Rockstar monitoring is not operational until an approved, accessible feed, API, or permitted HTML source is configured and tested. In the operator-reported check on 2026-09-10, Newswire required JavaScript and exposed no parseable body to the web reader; `/newswire/rss` was unavailable. Do not invent a feed endpoint. The accessible official VI page can support an administrator's manual verification; no release date is seeded. See the [source policy](docs/editorial-policy.md).
+Autonomous Rockstar monitoring is not operational until an approved, accessible feed, API, or permitted HTML source is configured and tested. In the operator-reported check on 2026-09-10, Newswire required JavaScript and exposed no parseable body to the web reader; `/newswire/rss` was unavailable. Do not invent a feed endpoint. The accumulation migration adds opt-in GTABase HTML sources for Thursday event-week and vehicle-catalog collection, while keeping third-party weekly records reported/review-only. It also records the current official GTA VI date from Rockstar's VI page when the setting is unset. See the [source policy](docs/editorial-policy.md).
 
 ## Local development
 
@@ -38,7 +38,7 @@ CI runs lint, typecheck, tests, and build with empty service credentials. It doe
 
 ## Deploy and operate
 
-Deploy to Vercel or a compatible Node.js host with Supabase. The recommended free scheduler is the explicitly gated GitHub Actions HTTP workflow; Vercel Cron remains disabled. It runs every 30 minutes and calls `GET /api/cron/news-sync` with `Authorization: Bearer <CRON_SECRET>`. Setup and switching instructions are in [deployment](docs/deployment.md). A paid Vercel plan is only needed if you prefer Vercel Cron instead.
+Deploy to Vercel or a compatible Node.js host with Supabase. The recommended free scheduler is the explicitly gated GitHub Actions HTTP workflow; Vercel Cron remains disabled. It runs every 30 minutes and calls `GET /api/cron/news-sync` with `Authorization: Bearer <CRON_SECRET>`. The route also runs the vehicle catalog collector; weekly sources are gated to Thursdays after `WEEKLY_SYNC_AFTER_UTC_HOUR` (default 10 UTC). Setup and switching instructions are in [deployment](docs/deployment.md). A paid Vercel plan is only needed if you prefer Vercel Cron instead.
 
 Transient-data cleanup runs when an automation run is inserted, so retention depends on functioning scheduled runs. It removes rate-limit records expired for over one day, expired AI extraction cache entries, and daily view aggregates older than 90 UTC days. See [operations](docs/operations.md) for the retention limits and monitoring requirements.
 

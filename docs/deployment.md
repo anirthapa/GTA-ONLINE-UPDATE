@@ -20,6 +20,7 @@ Use Node.js 22 (at least 22.12), npm, a Supabase project, and a Vercel project o
 | `OPENAI_MODEL` | Optional OpenAI model override | Used by the OpenAI fallback; operator must verify account/model access |
 | `CRON_SECRET` | Cron endpoint and database-backed abuse prevention/views | Random secret of at least 32 characters, as required by the routes; same value on the selected scheduler |
 | `INGESTION_BUDGET_MS` | Optional sync work budget | Default 240000; numeric milliseconds clamped to 5000–240000; leave time for in-flight requests and finalization |
+| `WEEKLY_SYNC_AFTER_UTC_HOUR` | Optional weekly source gate | Default `10`; weekly HTML sources are fetched only on Thursdays after this UTC hour |
 | `DEMO_MODE` | Local fixture development | `false` on production and previews; never seed production |
 | `ALLOW_FICTIONAL_SEED` | Explicit development seed opt-in | `false` when deployed; `true` only while seeding an isolated test database |
 | `GOOGLE_SITE_VERIFICATION` | Optional Search Console | Ownership token; not proof of successful verification |
@@ -37,6 +38,7 @@ Run from the repository root. Install/use the Supabase CLI according to the [Sup
 - `202609100010_analytics.sql`: database rate limits, per-day article views, trending RPC, and transient-data cleanup triggered by automation-run insertion.
 - `202609100011_catalog_search.sql`: generated guide `search_document` combining title and description with the PostgreSQL `simple` text-search configuration, plus its GIN index for catalog search.
 - `202609100012_explicit_deny_policies.sql`: explicit deny policies for anonymous/authenticated clients; server-side `service_role` access remains the only application data path.
+- `202609100016_configure_weekly_vehicle_sources.sql`: adds GTABase event-week and vehicle catalog sources and records the current Rockstar GTA VI date only when settings are unset.
 
 If this checkout has no `supabase/config.toml`, initialize the CLI configuration once. `init` is a setup action; it is not a migration or seed.
 
@@ -70,7 +72,7 @@ The script requires the opt-in, Supabase URL, and service-role key. It upserts f
 
 In Supabase Auth, create an email/password account for each permitted administrator and confirm its email. Put those exact addresses in `ADMIN_EMAIL`. Configure the Auth Site URL to the final origin and the allowed callback URL to `https://YOUR_DOMAIN/auth/callback`; add the localhost callback only for development. Sign in at `/admin/login`. There is no shared default password, automatic account creation, or fixture-based admin bypass. A successful Supabase login still requires a confirmed allowlisted email.
 
-Configure sources only after verifying accessible content and permission. Newswire's reported JavaScript-only body and unavailable RSS path mean automated Rockstar monitoring is not ready simply because the app deployed. See the [dated availability notes](editorial-policy.md#source-availability-and-permission). Do not seed a VI release date; administrators configure it from a newly checked official source.
+Configure sources only after verifying accessible content and permission. Newswire's reported JavaScript-only body and unavailable RSS path mean automated Rockstar monitoring is not ready simply because the app deployed. See the [dated availability notes](editorial-policy.md#source-availability-and-permission). Migration `202609100016` records the current official VI date only when the setting is unset; revisit that source after migration and update or clear the setting if Rockstar changes it.
 
 ## Vercel deployment
 

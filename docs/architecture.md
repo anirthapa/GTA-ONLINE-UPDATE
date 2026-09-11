@@ -13,7 +13,7 @@ Next.js 16 App Router serves the public site, admin pages, server actions, and H
 | Source adapters | `src/services/sources/index.ts`, `safe-fetch.ts`: RSS/Atom, JSON, channel-specific YouTube feeds, community XML feeds, opt-in HTML |
 | Extraction | `src/services/ai/extract.ts`: Responses API structured output, Zod validation, source evidence checks |
 | Trust | `src/services/trust.ts` and SQL constraints: server-owned source classification and publication eligibility |
-| Ingestion | `src/services/ingestion/pipeline.ts`: `runNewsSync({ sourceId? })`; protected HTTP entry point at `src/app/api/cron/news-sync/route.ts` |
+| Ingestion | `src/services/ingestion/pipeline.ts`: `runNewsSync({ sourceId? })`; `src/services/ingestion/catalog.ts`: `runVehicleSync({ sourceId? })`; protected HTTP entry point at `src/app/api/cron/news-sync/route.ts` |
 | Search discovery | `src/lib/seo.ts`, `src/app/sitemap.ts`, `src/app/robots.ts`, `src/app/news-sitemap.xml/route.ts` |
 | Article analytics | `src/app/api/views/route.ts`, `src/lib/rate-limit.ts`, `supabase/migrations/202609100010_analytics.sql`: first-party counts and durable abuse limits |
 
@@ -51,7 +51,7 @@ Configured database failures throw meaningful read errors rather than falling ba
 
 `runNewsSync` acquires a durable `news-sync` lease with a 120-second TTL, renews between work units, and releases it on exit. SQL persistence checks ownership. Scheduled run keys use five-minute buckets; an already-recorded bucket or a held lease returns `SKIPPED`. Manual source-specific runs use unique keys and still share the global lease. These controls reduce duplicate work; they do not guarantee exactly-once HTTP delivery.
 
-The pipeline examines at most 100 enabled sources in last-checked order and respects each source's `fetch_frequency`. Adapters normalize at most 50 input items per source. Source failures are isolated and recorded. Failed unchanged items are retried up to three recorded attempts; processed/ignored unchanged items are skipped. SQL combines canonical URLs, content hashes, title/topic similarity, provenance and revisions when attaching or updating a story. Conflicts and editorial locks require review.
+The pipeline examines at most 100 enabled sources in last-checked order and respects each source's `fetch_frequency`. `WEEKLY_UPDATE` sources are only fetched on Thursdays after the configured UTC reset hour; the gate schedules collection and never infers event dates. `VEHICLES` sources are handled by the separate bounded catalog collector and are not sent through news AI extraction. Adapters normalize at most 50 input items per source. Source failures are isolated and recorded. Failed unchanged items are retried up to three recorded attempts; processed/ignored unchanged items are skipped. SQL combines canonical URLs, content hashes, title/topic similarity, provenance and revisions when attaching or updating a story. Conflicts and editorial locks require review.
 
 The default work budget is 240 seconds (`INGESTION_BUDGET_MS`), checked between work units. It is not cancellation of an in-flight fetch/AI request. The hosting function allows up to 300 seconds in the checked-in configuration. Review real workload duration before enabling many sources. A budget interruption or source/item rejection can produce `PARTIAL`; fatal errors throw and record `FAILED` where possible. `expire_editorial_content` archives expired weekly records, clears expired breaking flags, and marks old unleased runs abandoned.
 

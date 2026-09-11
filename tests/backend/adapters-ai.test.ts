@@ -30,6 +30,15 @@ describe('source adapters', () => {
       '<nav>Not news</nav><article><h2><a href="/html">A fictional HTML title</a></h2><p>This fictional article provides enough source text for extraction.</p></article>' }));
     expect(parsed.items).toHaveLength(1); expect(parsed.items[0].url).toBe('https://news.example.com/html');
   });
+  it('reads a permitted weekly reference page as one bounded source item', async () => {
+    const weekly = { ...source, source_type: 'HTML' as const, category: 'WEEKLY_UPDATE', allow_html: true };
+    const parsed = await fetchSource(weekly, async () => ({ url: weekly.url, status: 200, headers: {}, body:
+      '<html><title>GTA Online weekly update</title><nav>Ignore navigation</nav><main><h1>GTA Online weekly update</h1><p>September 10, 2026 through September 16, 2026. Double GTA$ and RP on a named activity.</p></main></html>' }));
+    expect(parsed.items).toHaveLength(1);
+    expect(parsed.items[0].title).toBe('GTA Online weekly update');
+    expect(parsed.items[0].content).toContain('September 10, 2026');
+    expect(parsed.items[0].content).not.toContain('Ignore navigation');
+  });
   it('rejects YouTube channel impersonation', async () => {
     const channel = 'UC1234567890123456789012';
     const youtube = { ...source, source_type: 'YOUTUBE' as const, url: `https://www.youtube.com/feeds/videos.xml?channel_id=${channel}`, allowed_hosts: ['www.youtube.com'] };

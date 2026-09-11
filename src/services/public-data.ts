@@ -43,16 +43,24 @@ export async function getArticle(slug: string): Promise<Article | null> {
 }
 export async function getWeeklyUpdate(slug?: string): Promise<WeeklyUpdate | null> {
   if (!isDatabaseConfigured()) return slug && demoAllowed() ? DEMO_WEEKLY.find(row => row.slug === slug) || null : null;
-  let request = getDb().from('weekly_updates').select('*, articles!inner(status,published_at)').eq('verification_status', 'CONFIRMED')
-    .eq('articles.status', 'PUBLISHED').lte('articles.published_at', new Date().toISOString());
+  // Current trusted-media updates are useful to readers immediately, but the
+  // page must retain their REPORTED/REVIEW state instead of presenting them as
+  // official confirmation.
+  let request = getDb().from('weekly_updates').select('*').in('verification_status', ['CONFIRMED', 'REPORTED']);
   if (!demoAllowed()) request = request.eq('is_seed', false);
   if (slug) request = request.eq('slug', slug).in('status', ['PUBLISHED', 'ARCHIVED']);
   else {
     const now = new Date().toISOString();
-    request = request.eq('status', 'PUBLISHED').lte('event_start', now).gt('event_end', now);
+    request = request.in('status', ['PUBLISHED', 'REVIEW']).lte('event_start', now).gt('event_end', now);
   }
   const { data, error } = await request.order('event_start', { ascending: false }).limit(1).maybeSingle(); check(error);
-  return data as WeeklyUpdate | null;
+  if (!data) return null;
+  // Keep the parent-story publication check explicit. Embedded relation filters
+  // are less portable across PostgREST versions and previously hid this row.
+  const parent = await getDb().from('articles').select('status,published_at').eq('id', data.article_id).maybeSingle();
+  check(parent.error);
+  if (!parent.data || !['PUBLISHED', 'REVIEW'].includes(parent.data.status) || !parent.data.published_at || Date.parse(parent.data.published_at) > Date.now()) return null;
+  return data as WeeklyUpdate;
 }
 export async function getWeeklyArchive(): Promise<WeeklyUpdate[]> {
   if (!isDatabaseConfigured()) return demoAllowed() ? DEMO_WEEKLY : [];
