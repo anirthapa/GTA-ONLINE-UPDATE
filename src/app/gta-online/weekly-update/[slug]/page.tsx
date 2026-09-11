@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getWeeklyUpdate, getWeeklyArchive } from "@/services/public-data";
+import { getVehicles, getWeeklyUpdate, getWeeklyArchive } from "@/services/public-data";
 import { WeeklyPage } from "@/components/weekly-page";
 import { indexingAllowed } from "@/lib/seo";
 export const dynamic = "force-dynamic";
@@ -21,10 +21,11 @@ export default async function Page({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const [week, archive] = await Promise.all([
+  const [week, archive, vehicles] = await Promise.all([
     getWeeklyUpdate((await params).slug),
     getWeeklyArchive(),
+    getVehicles(),
   ]);
   if (!week) notFound();
-  return <WeeklyPage week={week} archive={archive} archived />;
+  return <WeeklyPage week={week} archive={archive} vehicles={vehicles} archived />;
 }

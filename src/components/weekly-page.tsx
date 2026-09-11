@@ -1,24 +1,44 @@
 import Link from "next/link";
-import type { WeeklyUpdate } from "@/services/types";
+import {
+  ArrowUpRight,
+  BadgePercent,
+  CalendarDays,
+  CarFront,
+  Gift,
+  Sparkles,
+} from "lucide-react";
+import type { Vehicle, WeeklyUpdate } from "@/services/types";
 import {
   Breadcrumbs,
   EmptyState,
   WeeklyPanel,
   SectionHeading,
 } from "@/components/editorial";
-import { date } from "@/lib/utils";
+import { MediaImage } from "@/components/media-image";
+import { date, money } from "@/lib/utils";
 function minutesSince(value: string) {
   return Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000)).toLocaleString();
 }
 export async function WeeklyPage({
   week,
   archive,
+  vehicles,
   archived = false,
 }: {
   week: WeeklyUpdate | null;
   archive: WeeklyUpdate[];
+  vehicles: Vehicle[];
   archived?: boolean;
 }) {
+  const discountMap = new Map(
+    week?.data.vehicleDiscounts.map((discount) => [
+      discount.name.toLowerCase(),
+      discount.discount,
+    ]) ?? [],
+  );
+  const featuredVehicles = vehicles
+    .filter((vehicle) => discountMap.has(vehicle.name.toLowerCase()))
+    .slice(0, 6);
   const sections = week
     ? ([
         [
@@ -62,6 +82,22 @@ export async function WeeklyPage({
           All in one briefing.
         </p>
       </div>
+      {week && (
+        <div className="weekly-command-bar">
+          <div className="weekly-command-status">
+            <span className="status-dot" aria-hidden="true" />
+            <div>
+              <p className="eyebrow">{archived ? "ARCHIVE FILE" : "LIVE FROM LOS SANTOS"}</p>
+              <strong>{date(week.event_start)} – {date(new Date(new Date(week.event_end).getTime() - 1).toISOString())}</strong>
+            </div>
+          </div>
+          <div className="weekly-command-facts">
+            <span><CalendarDays size={17} /> {week.data.bonuses.length} active bonuses</span>
+            <span><BadgePercent size={17} /> {week.data.vehicleDiscounts.length} vehicle deals</span>
+            <span><Gift size={17} /> {week.data.freeItems.length} free rewards</span>
+          </div>
+        </div>
+      )}
       {archived && (
         <div className="notice">
           Archived event. These offers are not presented as current.{" "}
@@ -96,6 +132,55 @@ export async function WeeklyPage({
       <WeeklyPanel week={week} full />
       {week ? (
         <>
+          {featuredVehicles.length > 0 && (
+            <section className="weekly-garage">
+              <SectionHeading
+                kicker="THE WEEK’S GARAGE"
+                title="Rides worth pulling up for."
+                href="/gta-online/vehicles"
+                action="Browse the full garage"
+              />
+              <div className="weekly-vehicle-grid">
+                {featuredVehicles.map((vehicle) => (
+                  <Link
+                    className="weekly-vehicle-card"
+                    href={`/gta-online/vehicles/${vehicle.slug}`}
+                    key={vehicle.id}
+                  >
+                    <div className="weekly-vehicle-image">
+                      {vehicle.image ? (
+                        <MediaImage
+                          src={vehicle.image}
+                          alt={`${vehicle.name} GTA Online vehicle`}
+                          sizes="(max-width: 760px) 100vw, (max-width: 1100px) 50vw, 33vw"
+                        />
+                      ) : (
+                        <CarFront size={42} aria-hidden="true" />
+                      )}
+                      <span className="discount-badge">
+                        {discountMap.get(vehicle.name.toLowerCase())}
+                      </span>
+                    </div>
+                    <div className="weekly-vehicle-copy">
+                      <p className="eyebrow">{vehicle.vehicle_class}</p>
+                      <h3>{vehicle.name}</h3>
+                      <div className="weekly-vehicle-meta">
+                        <span>{money(vehicle.price)}</span>
+                        <ArrowUpRight size={16} aria-hidden="true" />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+          <div className="weekly-section-heading">
+            <div>
+              <p className="eyebrow"><Sparkles size={15} /> FIELD NOTES</p>
+              <h2>Everything in the briefing.</h2>
+            </div>
+            <span className="muted">Checked {minutesSince(week.last_checked_at)} minutes ago</span>
+          </div>
           <div className="detail-grid">
             {sections.map(([title, items]) => (
               <section className="panel detail-section" key={title}>
