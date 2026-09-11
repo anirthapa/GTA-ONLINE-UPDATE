@@ -17,7 +17,10 @@ import {
 import { ArticleContent } from "@/components/content";
 import { ReleaseCountdown } from "@/components/interactive";
 import { MediaImage } from "@/components/media-image";
+import { HeistDirectory } from "@/components/heist-directory";
+import { HeistDetailPage } from "@/components/heist-detail";
 import { hubs, guidePath } from "@/lib/hubs";
+import { HEIST_ENTRIES } from "@/lib/heists";
 import { date } from "@/lib/utils";
 import { disclaimer, siteUrl } from "@/lib/site";
 export const dynamic = "force-dynamic";
@@ -62,6 +65,15 @@ export async function generateMetadata({
   const key = (await params).slug.join("/");
   const hub = hubs[key];
   const info = information[key];
+  const staticHeist = key.startsWith("gta-online/heists/")
+    ? HEIST_ENTRIES.find((heist) => heist.slug === key.split("/").at(-1))
+    : undefined;
+  if (staticHeist)
+    return {
+      title: `${staticHeist.title} Guide | GTA Online Heists`,
+      description: staticHeist.summary,
+      alternates: { canonical: `/${key}` },
+    };
   if (hub || info)
     return {
       title: hub?.title || info.title,
@@ -73,7 +85,7 @@ export async function generateMetadata({
     title: g?.title || "Page not found",
     description: g?.description,
     alternates: { canonical: `/${key}` },
-    robots: g?.is_seed ? { index: false, follow: false } : undefined,
+      robots: g?.is_seed ? { index: false, follow: false } : undefined,
   };
 }
 export default async function HubPage({
@@ -85,6 +97,9 @@ export default async function HubPage({
   const key = segments.join("/");
   const hub = hubs[key];
   const info = information[key];
+  const staticHeist = key.startsWith("gta-online/heists/")
+    ? HEIST_ENTRIES.find((heist) => heist.slug === segments.at(-1))
+    : undefined;
   if (info)
     return (
       <div className="container page-content" style={{ maxWidth: 950 }}>
@@ -96,7 +111,29 @@ export default async function HubPage({
         <ArticleContent content={info.content} />
       </div>
     );
+  if (staticHeist) return <HeistDetailPage heist={staticHeist} />;
   if (hub) {
+    if (key === "gta-online/heists") {
+      const articles = await getArticles({
+        game: "GTA_ONLINE",
+        limit: 6,
+      });
+      return (
+        <div className="container page-content heist-page">
+          <Breadcrumbs items={[{ name: "GTA Online / Heists", href: `/${key}` }]} />
+          <div className="page-heading heist-page-heading">
+            <p className="eyebrow">GTA ONLINE / HEIST INTELLIGENCE</p>
+            <h1>Plan your next score.</h1>
+            <p>Every official GTA Online heist in one place — launch date, buy-in, crew size, payout, routes and the requirements that actually matter.</p>
+          </div>
+          <HeistDirectory />
+          <section className="section-block">
+            <SectionHeading title="Related reporting" />
+            <ArticleGrid articles={articles} />
+          </section>
+        </div>
+      );
+    }
     const [articles, allGuides, settings] = await Promise.all([
       getArticles({
         game: hub.game,

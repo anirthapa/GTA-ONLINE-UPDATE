@@ -1597,3 +1597,800 @@ meter::-moz-meter-bar {
     transform: none;
   }
 }
+
+/* Heist directory */
+.heist-page-heading {
+  max-width: 980px;
+  margin-bottom: 28px;
+}
+.heist-page-heading h1 {
+  max-width: 720px;
+  font-size: clamp(2.8rem, 6vw, 5.4rem);
+  letter-spacing: -0.055em;
+}
+.heist-page-heading > p:not(.eyebrow) {
+  max-width: 740px;
+  font-size: 1.1rem;
+}
+.heist-directory {
+  margin-top: 10px;
+}
+.heist-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 30px;
+  padding: 30px;
+  background: linear-gradient(135deg, var(--surface2), var(--surface));
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.heist-overview h2 {
+  max-width: 650px;
+  margin: 9px 0 14px;
+  font-size: clamp(1.7rem, 3vw, 2.75rem);
+  letter-spacing: -0.04em;
+}
+.heist-overview p:not(.eyebrow) {
+  max-width: 700px;
+  color: var(--muted);
+  margin: 0;
+  font-size: 0.95rem;
+}
+.heist-overview-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 16px;
+}
+.heist-overview-metrics > div {
+  min-height: 100px;
+  padding: 15px 0 0;
+  border-top: 2px solid var(--accent);
+}
+.heist-overview-metrics strong {
+  display: block;
+  color: var(--accent);
+  font-size: clamp(1.45rem, 3vw, 2.2rem);
+  line-height: 1.1;
+}
+.heist-overview-metrics span {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+.heist-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 16px 0 24px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.heist-note svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--accent);
+}
+.heist-note p {
+  margin: 0;
+}
+.heist-note strong {
+  color: var(--fg);
+}
+.heist-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0;
+}
+.heist-filters button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 15px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.heist-filters button:hover,
+.heist-filters button.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.heist-list {
+  display: grid;
+  gap: 20px;
+}
+.heist-entry {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.78fr) minmax(0, 1.22fr);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.heist-entry-media {
+  min-height: 340px;
+  position: relative;
+  background: var(--surface2);
+}
+.heist-media-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.heist-entry-heading h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+.heist-entry-heading h3 a:hover {
+  color: var(--accent);
+}
+.heist-entry-media .story-image {
+  transition: transform 0.35s ease;
+}
+.heist-entry:hover .heist-entry-media .story-image {
+  transform: scale(1.035);
+}
+.heist-image-overlay {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 42px 18px 16px;
+  background: linear-gradient(transparent, #07090de6);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.heist-entry-body {
+  min-width: 0;
+  padding: 26px 28px 24px;
+}
+.heist-entry-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.heist-entry-heading h3 {
+  margin: 6px 0 0;
+  font-size: clamp(1.45rem, 2.5vw, 2.2rem);
+  letter-spacing: -0.035em;
+}
+.heist-entry-heading .eyebrow {
+  margin: 0;
+  color: var(--accent);
+}
+.heist-source {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+.heist-source:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.heist-summary {
+  max-width: 760px;
+  margin: 15px 0 20px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+.heist-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+.heist-stat {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+}
+.heist-stat svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--accent);
+}
+.heist-stat span,
+.heist-stat strong {
+  display: block;
+}
+.heist-stat span {
+  color: var(--muted);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.heist-stat strong {
+  margin-top: 3px;
+  font-size: 0.77rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.heist-payout {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 6px 15px;
+  padding: 15px 17px;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--line));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+.heist-payout .eyebrow {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.63rem;
+}
+.heist-payout strong {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.heist-payout small {
+  justify-self: end;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: right;
+}
+.heist-details {
+  margin-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.heist-details summary {
+  padding: 15px 0 0;
+  cursor: pointer;
+  color: var(--fg);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.heist-details summary:hover {
+  color: var(--accent);
+}
+.heist-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 25px;
+  padding: 20px 0 5px;
+}
+.heist-detail-grid h4 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.heist-detail-grid ul {
+  padding-left: 17px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.heist-detail-grid li {
+  margin-bottom: 8px;
+}
+.heist-routes {
+  list-style: none;
+  padding-left: 0 !important;
+}
+.heist-routes li {
+  display: grid;
+  gap: 3px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--line);
+}
+.heist-routes strong {
+  color: var(--fg);
+  font-size: 0.82rem;
+}
+.heist-routes span {
+  line-height: 1.5;
+}
+.heist-best-for {
+  margin-top: 14px;
+  padding: 12px 13px;
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.heist-best-for strong {
+  color: var(--fg);
+}
+.heist-release {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.heist-release svg {
+  color: var(--accent);
+}
+.heist-release a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.heist-full-guide {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.heist-adjacent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  margin-top: 22px;
+  padding: 22px 24px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: var(--surface2);
+}
+
+/* Heist detail pages */
+.heist-detail-page {
+  max-width: 1180px;
+}
+.heist-detail-page > article {
+  margin-top: 14px;
+}
+.heist-detail-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  min-height: 420px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.heist-detail-hero-media {
+  position: relative;
+  min-height: 420px;
+  background: var(--surface2);
+}
+.heist-detail-hero-media .story-image {
+  object-fit: cover;
+}
+.heist-detail-hero-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(28px, 5vw, 58px);
+}
+.heist-detail-hero-copy h1 {
+  margin: 11px 0 18px;
+  font-size: clamp(2.4rem, 5vw, 5.2rem);
+  line-height: 0.98;
+  letter-spacing: -0.065em;
+}
+.heist-detail-hero-copy > .eyebrow {
+  margin: 0;
+  color: var(--accent);
+}
+.heist-detail-lede {
+  max-width: 530px;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+.heist-detail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px 20px;
+  margin-top: 22px;
+}
+.heist-detail-links a,
+.heist-map-card > a,
+.heist-source-card a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.muted-link {
+  color: var(--muted);
+  font-size: 0.76rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.muted-link:hover {
+  color: var(--accent);
+}
+.heist-detail-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--line);
+}
+.heist-detail-stat {
+  min-width: 0;
+  padding: 17px;
+  background: var(--surface);
+}
+.heist-detail-stat svg {
+  color: var(--accent);
+}
+.heist-detail-stat span,
+.heist-detail-stat strong {
+  display: block;
+}
+.heist-detail-stat span {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.63rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.heist-detail-stat strong {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.heist-detail-money {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  margin-top: 18px;
+  padding: 24px 26px;
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+.heist-detail-money h2 {
+  max-width: 800px;
+  margin: 8px 0 7px;
+  color: var(--fg);
+  font-size: clamp(1.2rem, 2.2vw, 1.85rem);
+  line-height: 1.25;
+}
+.heist-detail-money p {
+  max-width: 760px;
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.heist-solo-badge {
+  display: grid;
+  flex: 0 0 155px;
+  gap: 7px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  text-align: center;
+}
+.heist-solo-badge strong {
+  color: var(--accent);
+  font-size: 0.65rem;
+  letter-spacing: 0.09em;
+}
+.heist-solo-badge span {
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+.heist-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+  gap: 22px;
+  margin-top: 22px;
+  align-items: start;
+}
+.heist-detail-section,
+.heist-map-card,
+.heist-source-card {
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--surface);
+}
+.heist-detail-section + .heist-detail-section {
+  margin-top: 18px;
+}
+.section-kicker {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--accent);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+}
+.heist-detail-section h2,
+.heist-map-card h2 {
+  margin: 9px 0 20px;
+  font-size: clamp(1.35rem, 2.5vw, 2.2rem);
+  letter-spacing: -0.04em;
+}
+.heist-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.heist-steps li {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 15px;
+  align-items: start;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+.heist-steps li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.heist-steps li > span {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.heist-steps p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+.heist-route-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+.heist-route-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface2);
+}
+.heist-route-card > span {
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+.heist-route-card h3 {
+  margin: 10px 0 7px;
+  font-size: 0.94rem;
+}
+.heist-route-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+.heist-requirements-list {
+  display: grid;
+  gap: 11px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.heist-requirements-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  line-height: 1.5;
+}
+.heist-requirements-list svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--accent);
+}
+.heist-map-column {
+  display: grid;
+  gap: 18px;
+  position: sticky;
+  top: 20px;
+}
+.heist-map-card {
+  padding: 20px;
+}
+.heist-map-card h2 {
+  font-size: 1.35rem;
+  margin-bottom: 15px;
+}
+.heist-map-media {
+  position: relative;
+  min-height: 300px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface2);
+}
+.heist-map-media .story-image {
+  object-fit: contain;
+}
+.heist-map-card > p {
+  margin: 16px 0 11px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+.heist-map-routes {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 15px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface2);
+}
+.heist-map-routes span {
+  color: var(--accent);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.heist-map-routes strong {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+.heist-source-card {
+  background: var(--surface2);
+}
+.heist-source-card .eyebrow {
+  margin: 0 0 10px;
+  color: var(--accent);
+}
+.heist-source-card p:not(.eyebrow) {
+  margin: 0 0 17px;
+  color: var(--muted);
+  font-size: 0.77rem;
+  line-height: 1.6;
+}
+.heist-source-card a {
+  color: var(--accent);
+  font-size: 0.78rem;
+}
+@media (max-width: 900px) {
+  .heist-detail-hero,
+  .heist-detail-layout {
+    grid-template-columns: 1fr;
+  }
+  .heist-detail-hero-media {
+    min-height: 330px;
+  }
+  .heist-detail-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .heist-map-column {
+    position: static;
+  }
+}
+@media (max-width: 650px) {
+  .heist-detail-hero-media {
+    min-height: 230px;
+  }
+  .heist-detail-hero-copy {
+    padding: 25px 21px 28px;
+  }
+  .heist-detail-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .heist-detail-money {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 21px;
+  }
+  .heist-solo-badge {
+    flex-basis: auto;
+  }
+  .heist-detail-section,
+  .heist-map-card,
+  .heist-source-card {
+    padding: 21px;
+  }
+  .heist-route-cards {
+    grid-template-columns: 1fr;
+  }
+}
+.heist-adjacent h3 {
+  margin: 5px 0 7px;
+  font-size: 1.25rem;
+}
+.heist-adjacent p:not(.eyebrow) {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.heist-adjacent .text-link {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 6px;
+  color: var(--accent);
+  font-size: 0.78rem;
+}
+@media (max-width: 900px) {
+  .heist-overview {
+    grid-template-columns: 1fr;
+  }
+  .heist-overview-metrics {
+    max-width: 600px;
+  }
+  .heist-entry {
+    grid-template-columns: 1fr;
+  }
+  .heist-entry-media {
+    min-height: 280px;
+  }
+}
+@media (max-width: 650px) {
+  .heist-overview {
+    padding: 22px;
+  }
+  .heist-overview-metrics {
+    gap: 10px;
+  }
+  .heist-overview-metrics > div {
+    min-height: 80px;
+  }
+  .heist-entry-media {
+    min-height: 220px;
+  }
+  .heist-entry-body {
+    padding: 22px 20px;
+  }
+  .heist-entry-heading {
+    display: block;
+  }
+  .heist-source {
+    margin-top: 14px;
+  }
+  .heist-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .heist-payout {
+    grid-template-columns: 1fr;
+  }
+  .heist-payout small {
+    justify-self: start;
+    text-align: left;
+  }
+  .heist-detail-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .heist-adjacent {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 20px;
+  }
+}
