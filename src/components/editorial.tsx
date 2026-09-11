@@ -247,6 +247,7 @@ export function Footer() {
             {[
               ["Guides", "/guides"],
               ["Vehicles", "/gta-online/vehicles"],
+              ["Properties", "/gta-online/properties"],
               ["Heists", "/gta-online/heists"],
               ["Rumors", "/rumors"],
             ].map(([n, h]) => (

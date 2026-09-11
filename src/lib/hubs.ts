@@ -2,6 +2,7 @@ export const hubs: Record<string,{title:string;description:string;game?:string;k
   'guides':{title:'Know the city. Own your session.',description:'Practical GTA guides with sourced information and clear verification dates.',kind:'GUIDE'},
   'rumors':{title:'The rumor desk.',description:'Community speculation and unconfirmed reports. None of these stories should be treated as official announcements.',verification:'RUMOR'},
   'gta-online/heists':{title:'Plan your next score.',description:'Heist requirements, approaches and sourced gameplay details. No invented payouts.',game:'GTA_ONLINE',kind:'HEIST'},
+  'gta-online/properties':{title:'Build a portfolio that pays back.',description:'Property costs, locations, unlocks and buying priorities across GTA Online.',game:'GTA_ONLINE'},
   'gta-online/businesses':{title:'Build your Los Santos empire.',description:'Business guides and related GTA Online news.',game:'GTA_ONLINE',category:'BUSINESSES'},
   'gta-online/events':{title:'What’s happening in Los Santos.',description:'Sourced events, announcements and limited-time content.',game:'GTA_ONLINE',category:'EVENTS'},
   'gta-online/gta-plus':{title:'Your GTA+ briefing.',description:'Membership benefits and announcements, with dates and sources.',game:'GTA_ONLINE',category:'GTA_PLUS'},

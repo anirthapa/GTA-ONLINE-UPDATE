@@ -19,8 +19,14 @@ import { ReleaseCountdown } from "@/components/interactive";
 import { MediaImage } from "@/components/media-image";
 import { HeistDirectory } from "@/components/heist-directory";
 import { HeistDetailPage } from "@/components/heist-detail";
+import { PropertyDetailPage } from "@/components/property-detail";
+import { PropertyDirectory } from "@/components/property-directory";
+import { BusinessDetailPage } from "@/components/business-detail";
+import { BusinessDirectory } from "@/components/business-directory";
 import { hubs, guidePath } from "@/lib/hubs";
 import { HEIST_ENTRIES } from "@/lib/heists";
+import { PROPERTY_ENTRIES } from "@/lib/properties";
+import { BUSINESS_ENTRIES } from "@/lib/businesses";
 import { date } from "@/lib/utils";
 import { disclaimer, siteUrl } from "@/lib/site";
 export const dynamic = "force-dynamic";
@@ -68,10 +74,28 @@ export async function generateMetadata({
   const staticHeist = key.startsWith("gta-online/heists/")
     ? HEIST_ENTRIES.find((heist) => heist.slug === key.split("/").at(-1))
     : undefined;
+  const staticProperty = key.startsWith("gta-online/properties/")
+    ? PROPERTY_ENTRIES.find((property) => property.slug === key.split("/").at(-1))
+    : undefined;
+  const staticBusiness = key.startsWith("gta-online/businesses/")
+    ? BUSINESS_ENTRIES.find((business) => business.slug === key.split("/").at(-1))
+    : undefined;
   if (staticHeist)
     return {
       title: `${staticHeist.title} Guide | GTA Online Heists`,
       description: staticHeist.summary,
+      alternates: { canonical: `/${key}` },
+    };
+  if (staticProperty)
+    return {
+      title: `${staticProperty.title} Guide | GTA Online Properties`,
+      description: staticProperty.summary,
+      alternates: { canonical: `/${key}` },
+    };
+  if (staticBusiness)
+    return {
+      title: `${staticBusiness.title} Guide | GTA Online Businesses`,
+      description: staticBusiness.summary,
       alternates: { canonical: `/${key}` },
     };
   if (hub || info)
@@ -100,6 +124,12 @@ export default async function HubPage({
   const staticHeist = key.startsWith("gta-online/heists/")
     ? HEIST_ENTRIES.find((heist) => heist.slug === segments.at(-1))
     : undefined;
+  const staticProperty = key.startsWith("gta-online/properties/")
+    ? PROPERTY_ENTRIES.find((property) => property.slug === segments.at(-1))
+    : undefined;
+  const staticBusiness = key.startsWith("gta-online/businesses/")
+    ? BUSINESS_ENTRIES.find((business) => business.slug === segments.at(-1))
+    : undefined;
   if (info)
     return (
       <div className="container page-content" style={{ maxWidth: 950 }}>
@@ -112,6 +142,8 @@ export default async function HubPage({
       </div>
     );
   if (staticHeist) return <HeistDetailPage heist={staticHeist} />;
+  if (staticProperty) return <PropertyDetailPage property={staticProperty} />;
+  if (staticBusiness) return <BusinessDetailPage business={staticBusiness} />;
   if (hub) {
     if (key === "gta-online/heists") {
       const articles = await getArticles({
@@ -127,6 +159,42 @@ export default async function HubPage({
             <p>Every official GTA Online heist in one place — launch date, buy-in, crew size, payout, routes and the requirements that actually matter.</p>
           </div>
           <HeistDirectory />
+          <section className="section-block">
+            <SectionHeading title="Related reporting" />
+            <ArticleGrid articles={articles} />
+          </section>
+        </div>
+      );
+    }
+    if (key === "gta-online/properties") {
+      const articles = await getArticles({ game: "GTA_ONLINE", limit: 6 });
+      return (
+        <div className="container page-content property-page">
+          <Breadcrumbs items={[{ name: "GTA Online / Properties", href: `/${key}` }]} />
+          <div className="page-heading property-page-heading">
+            <p className="eyebrow">GTA ONLINE / PROPERTY INTELLIGENCE</p>
+            <h1>Build a portfolio that pays back.</h1>
+            <p>Every major GTA Online property type in one clear buying guide — costs, unlocks, locations, benefits and the smartest next purchase.</p>
+          </div>
+          <PropertyDirectory />
+          <section className="section-block">
+            <SectionHeading title="Related reporting" />
+            <ArticleGrid articles={articles} />
+          </section>
+        </div>
+      );
+    }
+    if (key === "gta-online/businesses") {
+      const articles = await getArticles({ game: "GTA_ONLINE", category: "BUSINESSES", limit: 6 });
+      return (
+        <div className="container page-content business-page">
+          <Breadcrumbs items={[{ name: "GTA Online / Businesses", href: `/${key}` }]} />
+          <div className="page-heading business-page-heading">
+            <p className="eyebrow">GTA ONLINE / BUSINESS INTELLIGENCE</p>
+            <h1>Build an income engine.</h1>
+            <p>Every major GTA Online business in one clear guide — start cost, income cycle, solo support, unlocks, locations and the right order to grow.</p>
+          </div>
+          <BusinessDirectory />
           <section className="section-block">
             <SectionHeading title="Related reporting" />
             <ArticleGrid articles={articles} />
@@ -247,6 +315,8 @@ export default async function HubPage({
   const allowed =
     key.startsWith("guides/") ||
     key.startsWith("gta-online/heists/") ||
+    key.startsWith("gta-online/properties/") ||
+    key.startsWith("gta-online/businesses/") ||
     key.startsWith("gta-6/characters/") ||
     key.startsWith("gta-6/locations/") ||
     key.startsWith("gta-6/trailers/");

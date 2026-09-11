@@ -3,6 +3,9 @@ import { getDb } from '@/lib/db';
 import { guidePath, hubs } from '@/lib/hubs';
 import { articleUrl, canonicalOrigin, indexingAllowed, isIndexableArticle, sitemapArticles, type SitemapArticle } from '@/lib/seo';
 import type { Guide, Vehicle, WeeklyUpdate } from '@/services/types';
+import { HEIST_ENTRIES } from '@/lib/heists';
+import { PROPERTY_ENTRIES } from '@/lib/properties';
+import { BUSINESS_ENTRIES } from '@/lib/businesses';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +28,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const paths = new Set([
     '/', '/news', '/gta-online', '/gta-6', '/gta-online/weekly-update', '/gta-online/vehicles',
     ...Object.keys(hubs).map(path => `/${path}`),
+    ...HEIST_ENTRIES.map(heist => `/gta-online/heists/${encodeURIComponent(heist.slug)}`),
+    ...PROPERTY_ENTRIES.map(property => `/gta-online/properties/${encodeURIComponent(property.slug)}`),
+    ...BUSINESS_ENTRIES.map(business => `/gta-online/businesses/${encodeURIComponent(business.slug)}`),
     '/about', '/contact', '/privacy', '/terms', '/disclaimer',
   ]);
   // The weekly landing page remains discoverable while awaiting a verified event.

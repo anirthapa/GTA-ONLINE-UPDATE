@@ -94,6 +94,7 @@ export default async function Online() {
           ["Money guides", "/guides"],
           ["Heists", "/gta-online/heists"],
           ["Vehicles", "/gta-online/vehicles"],
+          ["Properties", "/gta-online/properties"],
           ["Businesses", "/gta-online/businesses"],
           ["GTA+", "/gta-online/gta-plus"],
           ["Events", "/gta-online/events"],
