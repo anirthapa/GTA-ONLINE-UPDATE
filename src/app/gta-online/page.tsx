@@ -13,6 +13,7 @@ import {
   SectionHeading,
   WeeklyPanel,
 } from "@/components/editorial";
+import { OfficialNewsDesk } from "@/components/official-news-desk";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "GTA Online news, bonuses and guides",
@@ -107,6 +108,7 @@ export default async function Online() {
           </Link>
         ))}
       </nav>
+      <OfficialNewsDesk compact />
       {offers.length > 0 && (
         <section className="edition-section">
           <SectionHeading

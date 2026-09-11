@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getArticles } from "@/services/public-data";
 import { ArticleGrid, Breadcrumbs } from "@/components/editorial";
+import { OfficialNewsDesk } from "@/components/official-news-desk";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Latest GTA news",
@@ -46,6 +47,7 @@ export default async function News({
           </Link>
         ))}
       </nav>
+      <OfficialNewsDesk />
       <ArticleGrid articles={articles} />
       <div className="pagination">
         {page > 1 ? (
